@@ -57,7 +57,7 @@ class UserTest {
             String encryptedPublicKey = Crypto.encryptAES(KeyString.PublicKeyToString(rsa.getPublicKey()), mainKey, iv);
             String encryptedPrivateKey = Crypto.encryptAES(KeyString.PrivateKeyToString(rsa.getPrivateKey()), mainKey, iv);
 
-            user = new User(userName, password, KeyString.SaltToString(salt), KeyString.IvToString(iv), encryptedPublicKey, encryptedPrivateKey);
+            user = new User(userName, Hash.hashPassword(userName, password), KeyString.SaltToString(salt), KeyString.IvToString(iv), encryptedPublicKey, encryptedPrivateKey);
 
             assertNotNull(user.getUserName());
             assertNotNull(user.getHashedPassword());

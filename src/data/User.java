@@ -28,10 +28,10 @@ public class User {
         this.keyMainKey = new MainKey(this.hashedPassword);
     }
 
-    public User(String userName, String password, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
+    public User(String userName, String hashedPassword, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
             throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         this.userName = userName;
-        this.hashedPassword = Hash.hashPassword(password, userName);
+        this.hashedPassword = hashedPassword;
         this.iv = KeyString.StringToIv(ivString);
         this.keyMainKey = new MainKey(hashedPassword, saltString);
 
