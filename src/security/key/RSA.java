@@ -1,4 +1,7 @@
-package security;
+package security.key;
+
+import security.Crypto;
+import security.KeyString;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;

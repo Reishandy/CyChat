@@ -4,8 +4,12 @@ import data.Constant;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.Base64;
 
 public class Crypto {
@@ -21,10 +25,24 @@ public class Crypto {
         return generator.generateKeyPair();
     }
 
+    public static SecretKey generateMainKey(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, Constant.mainKeyIteration, Constant.keySizeAES256);
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        SecretKey secretKey = keyFactory.generateSecret(keySpec);
+        return new SecretKeySpec(secretKey.getEncoded(), "AES");
+    }
+
     public static IvParameterSpec generateIv() {
-        byte[] iv = new byte[Constant.bitSizeIv];
+        byte[] iv = new byte[Constant.bit16];
         new SecureRandom().nextBytes(iv);
         return new IvParameterSpec(iv);
+    }
+
+    public static byte[] generateSalt() throws NoSuchAlgorithmException {
+        SecureRandom random = SecureRandom.getInstanceStrong();
+        byte[] salt = new byte[Constant.bit16];
+        random.nextBytes(salt);
+        return salt;
     }
 
     public static String encryptAES(String plainText, SecretKey key, IvParameterSpec iv) throws

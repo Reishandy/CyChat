@@ -1,6 +1,8 @@
-package security;
+package security.key;
 
 import data.Constant;
+import security.Crypto;
+import security.KeyString;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
