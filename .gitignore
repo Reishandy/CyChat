@@ -39,7 +39,7 @@ out/
 .sts4-cache
 bin/
 !**/src/main/**/bin/
-!**/src/test/**/bin/
+!**/src/testtest/**/bin/
 
 ### NetBeans ###
 /nbproject/private/
@@ -54,3 +54,4 @@ bin/
 ### Mac OS ###
 .DS_Store
 >>>>>>> adf1f31 (init)
+/cychat.db
