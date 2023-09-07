@@ -9,11 +9,11 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 
 public class RSA {
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
-    private String publicKeyString, privateKeyString;
+    private final PublicKey publicKey;
+    private final PrivateKey privateKey;
+    private final String publicKeyString, privateKeyString;
 
-    public void initialization() throws NoSuchAlgorithmException {
+    public RSA() throws NoSuchAlgorithmException {
         KeyPair keyPair = Crypto.generateRSAKey();
         privateKey = keyPair.getPrivate();
         publicKey = keyPair.getPublic();
@@ -21,14 +21,11 @@ public class RSA {
         privateKeyString = KeyString.PrivateKeyToString(privateKey);
     }
 
-    public void setPublicKey(PublicKey publicKey) {
-        this.publicKey = publicKey;
-        privateKeyString = KeyString.PublicKeyToString(publicKey);
-    }
-
-    public void setPublicKey(String publicKeyString) {
-        this.privateKeyString = publicKeyString;
-        publicKey = KeyString.StringToPublicKey(publicKeyString);
+    public RSA(String publicKeyString, String privateKeyString) {
+        this.publicKeyString = publicKeyString;
+        this.privateKeyString = privateKeyString;
+        this.privateKey = KeyString.StringToPrivateKey(privateKeyString);
+        this.publicKey = KeyString.StringToPublicKey(publicKeyString);
     }
 
     public PublicKey getPublicKey() {

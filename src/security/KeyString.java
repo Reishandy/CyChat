@@ -35,6 +35,14 @@ public class KeyString {
         return new IvParameterSpec(decodedIv);
     }
 
+    public static String SaltToString(byte[] salt) {
+        return Base64.getEncoder().encodeToString(salt);
+    }
+
+    public static byte[] StringToSalt(String encodedSalt) {
+        return Base64.getDecoder().decode(encodedSalt);
+    }
+
     public static String PublicKeyToString(PublicKey key) {
         byte[] rawKey = key.getEncoded();
         return Base64.getEncoder().encodeToString(rawKey);
