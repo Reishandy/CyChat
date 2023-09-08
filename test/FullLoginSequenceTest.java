@@ -4,8 +4,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import security.Hash;
+import storage.DataBase;
 import storage.UserDataBase;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
@@ -20,12 +22,11 @@ public class FullLoginSequenceTest {
     User user;
     String userName = "Cat";
     String password = "I like cats";
-    ArrayList<User> userList;
 
     @BeforeEach
     @AfterEach
-    void clear() throws SQLException {
-        Connection connection = DriverManager.getConnection(Constant.databaseSQLite);
+    void clear() throws SQLException, IOException {
+        Connection connection = DriverManager.getConnection(DataBase.getDataBasePath());
         Statement statement = connection.createStatement();
         statement.executeUpdate("DROP TABLE IF EXISTS userdata;");
         statement.close();
@@ -35,9 +36,8 @@ public class FullLoginSequenceTest {
     @Test
     void startSequence() {
         UserDataBase.initialization();
-        userList = UserDataBase.getUserFromDatabase();
 
-        if (userList.isEmpty()) {
+        if (UserDataBase.tableIsEmpty()) {
             register();
         } else {
             login(); // Not reachable, only for flow demonstration
@@ -66,17 +66,7 @@ public class FullLoginSequenceTest {
     }
 
     private void login() {
-        userList = UserDataBase.getUserFromDatabase();
-
-        userList.forEach((userA) -> {
-            try {
-                if (userA.getUserName().equals(userName) && userA.getHashedPassword().equals(Hash.hashPassword(password, userName))) {
-                    user = userA;
-                }
-            } catch (NoSuchAlgorithmException e) {
-                fail("NoSuchAlgorithmException should not be thrown");
-            }
-        });
+        user = UserDataBase.getUserFromDatabase(userName, password);
 
         assertNotNull(user.getUserName());
         assertNotNull(user.getHashedPassword());
