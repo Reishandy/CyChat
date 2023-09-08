@@ -16,27 +16,25 @@ import java.security.spec.InvalidKeySpecException;
 
 public class User {
     private final String userName, hashedPassword;
-    private final IvParameterSpec iv;
     private final RSA keyRSA;
     private final MainKey keyMainKey;
 
     public User(String userName, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.userName = userName;
         this.hashedPassword = Hash.hashPassword(password, userName);
-        this.iv = Crypto.generateIv();
         this.keyRSA = new RSA();
-        this.keyMainKey = new MainKey(this.hashedPassword);
+        this.keyMainKey = new MainKey(password);
     }
 
-    public User(String userName, String hashedPassword, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
+    public User(String userName, String password, String hashedPassword, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
             throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         this.userName = userName;
         this.hashedPassword = hashedPassword;
-        this.iv = KeyString.StringToIv(ivString);
-        this.keyMainKey = new MainKey(hashedPassword, saltString);
+        this.keyMainKey = new MainKey(password, saltString, ivString);
+        password = null;
 
-        String publicKeyString = Crypto.decryptAES(encryptedPublicKey, getMainKey(), iv);
-        String privateKeyString = Crypto.decryptAES(encryptedPrivateKey, getMainKey(), iv);
+        String publicKeyString = Crypto.decryptAES(encryptedPublicKey, getMainKey(), getIv());
+        String privateKeyString = Crypto.decryptAES(encryptedPrivateKey, getMainKey(), getIv());
         this.keyRSA = new RSA(publicKeyString, privateKeyString);
     }
 
@@ -65,6 +63,9 @@ public class User {
     }
 
     public String getIvString() {
-        return KeyString.IvToString(iv);
+        return KeyString.IvToString(keyMainKey.getIv());
     }
+    public IvParameterSpec getIv() {
+        return keyMainKey.getIv();
+    };
 }

@@ -28,6 +28,13 @@ public class RSA {
         this.publicKey = KeyString.StringToPublicKey(publicKeyString);
     }
 
+    public RSA(String publicKeyString) {
+        this.publicKeyString = publicKeyString;
+        this.publicKey = KeyString.StringToPublicKey(publicKeyString);
+        this.privateKey = null;
+        this.privateKeyString = null;
+    }
+
     public PublicKey getPublicKey() {
         return publicKey;
     }

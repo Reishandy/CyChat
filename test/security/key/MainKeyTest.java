@@ -38,7 +38,8 @@ class MainKeyTest {
     @Test
     void testConstructWithSalt() throws NoSuchAlgorithmException, InvalidKeySpecException {
         String saltString = mainKey.getSaltString();
-        MainKey mainKeyWithSalt = new MainKey(Hash.hashPassword(password, userName), saltString);
+        String ivString = mainKey.getIvString();
+        MainKey mainKeyWithSalt = new MainKey(Hash.hashPassword(password, userName), saltString, ivString);
 
         assertEquals(saltString, mainKeyWithSalt.getSaltString());
         assertEquals(mainKey.getKey(), mainKeyWithSalt.getKey());
