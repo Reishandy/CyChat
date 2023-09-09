@@ -11,9 +11,7 @@ public class Constant {
     public static int bit16 = 16;
     public static int keySizeRSA = 2048;
     public static int mainKeyIteration = 1000;
-    public static int argon2Iteration = 23;
-    public static int argon2memory = 65536;
-    public static int argon2Thread = 1;
-
-
+    public static int broadcastPort = 6000;
+    public static int applicationPort = 2318;
+    public static int bufferListenForBroadcast = 1024;
 }
