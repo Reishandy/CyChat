@@ -26,7 +26,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 public class Handshake {
-    // TODO: key exchange mechanism and add to contact for both of the user
     public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager) {
         try (Socket socket = new Socket(peer.ip(), Constant.applicationPort)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
