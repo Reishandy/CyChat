@@ -14,6 +14,6 @@ public class Constant {
     public static int keySizeRSA = 2048;
     public static int mainKeyIteration = 1000;
     public static int broadcastPort = 6000;
-    public static int applicationPort = 2318;
+    public static int applicationPort = 6318;
     public static int bufferListenForBroadcast = 1024;
 }

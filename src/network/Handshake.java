@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Inet4Address;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
@@ -64,10 +65,14 @@ public class Handshake {
 
     public static void listener(User user, ContactManager contactManager) {
         try (ServerSocket socket = new ServerSocket(Constant.applicationPort)) {
+            Socket clientSocket = null;
+            BufferedReader in = null;
+            PrintWriter out = null;
+
             while (!Thread.currentThread().isInterrupted()) {
-                Socket clientSocket = socket.accept();
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                clientSocket = socket.accept();
+                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                out = new PrintWriter(clientSocket.getOutputStream(), true);
 
                 // Receive userDetails
                 String[] userDetails = in.readLine().split(":");
@@ -75,7 +80,9 @@ public class Handshake {
                 String senderIpAddress = userDetails[1];
 
                 // Decision and send signal
-                if (decisionHandler(senderUserName, senderIpAddress)) {
+                boolean decision = decisionHandler(senderUserName, senderIpAddress);
+                Thread.sleep(500);
+                if (decision) {
                     out.println(Constant.acceptSignal);
                 } else {
                     out.println(Constant.refuseSignal);
@@ -95,8 +102,12 @@ public class Handshake {
                 Contact sender = new Contact(senderUserName, senderPublicKey, keyAESString, ivString);
                 contactManager.addContact(sender);
             }
+
+            if (clientSocket != null) clientSocket.close();
+            if (in != null) in.close();
+            if (out != null) out.close();
         } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                 IllegalBlockSizeException | BadPaddingException e) {
+                 IllegalBlockSizeException | BadPaddingException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
