@@ -11,12 +11,22 @@ public class PeerManager {
         peers = new ArrayList<>();
     }
 
-    public boolean findPeer(Peer peer) {
-        return peers.contains(peer);
+    public boolean checkPeerExist(String userName) {
+        for (Peer peer: peers) {
+            if (peer.userName().equals(userName)) return true;
+        }
+        return false;
     }
 
     public void addPeer(Peer peer) {
         peers.add(peer);
+    }
+
+    public Peer getPeer(String userName) {
+        for (Peer peer: peers) {
+            if (peer.userName().equals(userName)) return peer;
+        }
+        return null;
     }
 
     public ArrayList<Peer> getPeers() {

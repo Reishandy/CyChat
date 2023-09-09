@@ -11,16 +11,31 @@ public class ContactManager {
         contacts = new ArrayList<>();
     }
 
-    public ContactManager(ArrayList<Contact> contacts) {
-        this.contacts = contacts;
-    }
-
-    public boolean findContact(Contact contact) {
-        return contacts.contains(contact);
+    public boolean checkContactExist(String userName) {
+        for (Contact contact: contacts) {
+            if (contact.getUserName().equals(userName)) return true;
+        }
+        return false;
     }
 
     public void addContact(Contact contact) {
         contacts.add(contact);
+    }
+
+    public void updateIpAddress(String userName, String ipAddress) {
+        for (Contact contact: contacts) {
+            if (contact.getUserName().equals(userName)) {
+                contact.setIp(ipAddress);
+                return;
+            }
+        }
+    }
+
+    public Contact getContact(String userName) {
+        for (Contact contact: contacts) {
+            if (contact.getUserName().equals(userName)) return contact;
+        }
+        return null;
     }
 
     public ArrayList<Contact> getContacts() {

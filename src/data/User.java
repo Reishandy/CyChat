@@ -24,6 +24,7 @@ public class User {
         this.hashedPassword = Hash.hashPassword(password, userName);
         this.keyRSA = new RSA();
         this.keyMainKey = new MainKey(password);
+        password = null;
     }
 
     public User(String userName, String password, String hashedPassword, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
@@ -65,6 +66,7 @@ public class User {
     public String getIvString() {
         return KeyString.IvToString(keyMainKey.getIv());
     }
+
     public IvParameterSpec getIv() {
         return keyMainKey.getIv();
     };
