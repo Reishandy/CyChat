@@ -11,22 +11,19 @@ import security.KeyString;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Inet4Address;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
-public class Handshake {
+public class Exchange {
     public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager) {
         try (Socket socket = new Socket(peer.ip(), Constant.handshakePort)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -80,7 +77,7 @@ public class Handshake {
                 String senderIpAddress = userDetails[1];
 
                 // Decision and send signal
-                boolean decision = decisionHandler(senderUserName, senderIpAddress);
+                boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange");
                 Thread.sleep(500);
                 if (decision) {
                     out.println(Constant.acceptSignal);
@@ -112,13 +109,15 @@ public class Handshake {
         }
     }
 
-    private static boolean decisionHandler(String senderUserName, String senderIpAddress) {
-        String message = "Incoming contact exchange request from:\n" +
+    static boolean decisionHandler(String senderUserName, String senderIpAddress, String messageInput) {
+        String message = "Incoming " + messageInput + " request from:\n" +
                 "Username: " + senderUserName + "\n" +
                 "IP Address: " + senderIpAddress + "\n\n" +
                 "Do you want to accept?";
 
         int option = JOptionPane.showConfirmDialog(null, message, "Exchange Request", JOptionPane.YES_NO_OPTION);
-        return option == JOptionPane.YES_OPTION;
+        int decision = JOptionPane.YES_OPTION;
+        JOptionPane.getRootFrame().dispose();
+        return option == decision;
     }
 }

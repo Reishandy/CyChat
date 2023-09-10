@@ -16,5 +16,6 @@ public class Constant {
     public static int broadcastPort = 6189;
     public static int handshakePort = 6191;
     public static int chatPort = 6193;
+    public static int chatHandshakePort = 6195;
     public static int bufferListenForBroadcast = 1024;
 }

@@ -6,7 +6,6 @@ import data.User;
 import manager.ContactManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import security.Hash;
 import security.KeyString;
 
 import java.net.Inet4Address;
@@ -16,7 +15,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class HandshakeTest {
+class ExchangeTest {
     String senderUserName, senderPassword, receiverUserName, receiverPassword, testIpAddress;
     User senderUser, receiverUser;
     Peer receiverPeer;
@@ -41,7 +40,7 @@ class HandshakeTest {
     }
 
     void refused() {
-        boolean status = Handshake.knowEachOther(senderUser, receiverPeer, senderContactManager);
+        boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager);
 
         assertFalse(status);
         assertEquals(0, senderContactManager.getContacts().size());
@@ -51,12 +50,12 @@ class HandshakeTest {
     @Test
     void handshakeTest() throws UnknownHostException, NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException {
         Runnable listenerTask = () -> {
-            Handshake.listener(receiverUser, receiverContactManager);
+            Exchange.listener(receiverUser, receiverContactManager);
         };
         Thread listenerThread = new Thread(listenerTask);
         listenerThread.start();
 
-        boolean status = Handshake.knowEachOther(senderUser, receiverPeer, senderContactManager);
+        boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager);
 
         Thread.sleep(100);
 
