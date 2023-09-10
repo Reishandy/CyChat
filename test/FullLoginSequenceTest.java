@@ -22,6 +22,7 @@ public class FullLoginSequenceTest {
     User user;
     String userName = "Cat";
     String password = "I like cats";
+    String database = "jdbc:sqlite:test.db";
 
     @BeforeEach
     @AfterEach
@@ -35,9 +36,9 @@ public class FullLoginSequenceTest {
 
     @Test
     void startSequence() {
-        UserDataBase.initialization();
+        UserDataBase.initialization(database);
 
-        if (UserDataBase.tableIsEmpty()) {
+        if (UserDataBase.tableIsEmpty(database)) {
             register();
         } else {
             login(); // Not reachable, only for flow demonstration
@@ -58,7 +59,7 @@ public class FullLoginSequenceTest {
             assertEquals(userA.getUserName(), userName);
             assertEquals(userA.getHashedPassword(), Hash.hashPassword(password, userName));
 
-            UserDataBase.addIntoDatabase(userA);
+            UserDataBase.addIntoDatabase(userA, database);
             login();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             fail("No errors should be thrown");
@@ -66,7 +67,7 @@ public class FullLoginSequenceTest {
     }
 
     private void login() {
-        user = UserDataBase.getUserFromDatabase(userName, password);
+        user = UserDataBase.getUserFromDatabase(userName, password, database);
 
         assertNotNull(user.getUserName());
         assertNotNull(user.getHashedPassword());

@@ -17,11 +17,13 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserDataBaseTest {
+    String database;
 
     @BeforeEach
     @AfterEach
-    void clear() throws SQLException, IOException {
-        Connection connection = DriverManager.getConnection(DataBase.getDataBasePath());
+    void clear() throws SQLException {
+        database = "jdbc:sqlite:test.db";
+        Connection connection = DriverManager.getConnection(database);
         Statement statement = connection.createStatement();
         statement.executeUpdate("DROP TABLE IF EXISTS userdata;");
         statement.close();
@@ -35,9 +37,9 @@ class UserDataBaseTest {
             String password = "I like cat";
             User user = new User(userName, password);
 
-            UserDataBase.initialization();
-            UserDataBase.addIntoDatabase(user);
-            User userGet = UserDataBase.getUserFromDatabase(userName, password);
+            UserDataBase.initialization(database);
+            UserDataBase.addIntoDatabase(user, database);
+            User userGet = UserDataBase.getUserFromDatabase(userName, password, database);
 
             assertNotNull(userGet);
             assertEquals(user.getUserName(), userGet.getUserName());

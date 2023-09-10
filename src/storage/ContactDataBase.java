@@ -17,12 +17,12 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class ContactDataBase {
-    public static void initialization() {
+    public static void initialization(String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS contact (" +
@@ -35,7 +35,7 @@ public class ContactDataBase {
             );
             preparedStatement.executeUpdate();
 
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
             try {
@@ -49,12 +49,12 @@ public class ContactDataBase {
         }
     }
 
-    public static void addIntoDatabase(Contact contact, User user) {
+    public static void addIntoDatabase(Contact contact, User user, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement(
                     "INSERT OR IGNORE INTO contact (userName, ip, ivString, " +
@@ -71,7 +71,7 @@ public class ContactDataBase {
             preparedStatement.executeUpdate();
 
         } catch (SQLException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | IOException e) {
+                 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
         } finally {
             try {
@@ -85,14 +85,14 @@ public class ContactDataBase {
         }
     }
 
-    public static ArrayList<Contact> getContactFromDatabase(User user) {
+    public static ArrayList<Contact> getContactFromDatabase(User user, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         ArrayList<Contact> contacts = new ArrayList<>();
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement("SELECT * FROM contact");
             resultSet = preparedStatement.executeQuery();
@@ -114,7 +114,7 @@ public class ContactDataBase {
 
             return contacts;
         } catch (SQLException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | NoSuchPaddingException |
-                 IllegalBlockSizeException | BadPaddingException | InvalidKeyException | IOException e) {
+                 IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
             throw new RuntimeException(e);
         } finally {
             try {

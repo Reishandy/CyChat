@@ -13,7 +13,8 @@ public class Constant {
     public static int bit16 = 16;
     public static int keySizeRSA = 2048;
     public static int mainKeyIteration = 1000;
-    public static int broadcastPort = 6000;
-    public static int applicationPort = 6318;
+    public static int broadcastPort = 6189;
+    public static int handshakePort = 6191;
+    public static int chatPort = 6193;
     public static int bufferListenForBroadcast = 1024;
 }

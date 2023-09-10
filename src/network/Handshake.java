@@ -28,7 +28,7 @@ import java.security.PublicKey;
 
 public class Handshake {
     public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager) {
-        try (Socket socket = new Socket(peer.ip(), Constant.applicationPort)) {
+        try (Socket socket = new Socket(peer.ip(), Constant.handshakePort)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -64,7 +64,7 @@ public class Handshake {
     }
 
     public static void listener(User user, ContactManager contactManager) {
-        try (ServerSocket socket = new ServerSocket(Constant.applicationPort)) {
+        try (ServerSocket socket = new ServerSocket(Constant.handshakePort)) {
             Socket clientSocket = null;
             BufferedReader in = null;
             PrintWriter out = null;

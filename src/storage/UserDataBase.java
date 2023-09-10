@@ -17,12 +17,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 
 public class UserDataBase {
-    public static void initialization() {
+    public static void initialization(String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS userdata (" +
@@ -36,7 +36,7 @@ public class UserDataBase {
             );
             preparedStatement.executeUpdate();
 
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
             try {
@@ -50,12 +50,12 @@ public class UserDataBase {
         }
     }
 
-    public static void addIntoDatabase(User user) {
+    public static void addIntoDatabase(User user, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement(
                     "INSERT OR IGNORE INTO userdata (" +
@@ -75,7 +75,7 @@ public class UserDataBase {
             preparedStatement.executeUpdate();
 
         } catch (SQLException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException | IOException e) {
+                 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
         } finally {
             try {
@@ -89,14 +89,14 @@ public class UserDataBase {
         }
     }
 
-    public static User getUserFromDatabase(String userNameInput, String passwordInput) {
+    public static User getUserFromDatabase(String userNameInput, String passwordInput, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         User user = null;
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement("SELECT * FROM userdata");
             resultSet = preparedStatement.executeQuery();
@@ -118,7 +118,7 @@ public class UserDataBase {
             return user;
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException |
                  InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                 BadPaddingException | InvalidKeyException | IOException e) {
+                 BadPaddingException | InvalidKeyException e) {
             throw new RuntimeException(e);
         } finally {
             try {
@@ -132,14 +132,14 @@ public class UserDataBase {
         }
     }
 
-    public static boolean tableIsEmpty() {
+    public static boolean tableIsEmpty(String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         int rowCount = 0;
 
         try {
-            connection = DriverManager.getConnection(DataBase.getDataBasePath());
+            connection = DriverManager.getConnection(database);
             String selectQuery = "SELECT COUNT(*) FROM userdata";
             preparedStatement = connection.prepareStatement(selectQuery);
             resultSet = preparedStatement.executeQuery();
@@ -147,15 +147,15 @@ public class UserDataBase {
             if (resultSet.next()) {
                 rowCount = resultSet.getInt(1);
             }
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (preparedStatement != null) preparedStatement.close();
                 if (connection != null) connection.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
 

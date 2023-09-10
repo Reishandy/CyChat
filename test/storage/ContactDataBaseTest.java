@@ -20,10 +20,13 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ContactDataBaseTest {
+    String database;
+
     @BeforeEach
     @AfterEach
-    void clear() throws SQLException, IOException {
-        Connection connection = DriverManager.getConnection(DataBase.getDataBasePath());
+    void clear() throws SQLException {
+        database = "jdbc:sqlite:test.db";
+        Connection connection = DriverManager.getConnection(database);
         Statement statement = connection.createStatement();
         statement.executeUpdate("DROP TABLE IF EXISTS contact;");
         statement.close();
@@ -41,10 +44,10 @@ class ContactDataBaseTest {
             User user = new User("Cat", "I like cat");
             Contact contact = new Contact(userName, publicKeyString, aesKeyString, ivString);
 
-            ContactDataBase.initialization();
-            ContactDataBase.addIntoDatabase(contact, user);
+            ContactDataBase.initialization(database);
+            ContactDataBase.addIntoDatabase(contact, user, database);
 
-            Contact contactGet = ContactDataBase.getContactFromDatabase(user).get(0);
+            Contact contactGet = ContactDataBase.getContactFromDatabase(user, database).get(0);
 
             assertNotNull(contactGet);
             assertEquals(contactGet.getUserName(), contact.getUserName());
