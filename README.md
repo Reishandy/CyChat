@@ -9,6 +9,6 @@ This advanced programming final project is Java-based and incorporates Object-Or
 - Users can discover and connect with others on the same LAN.
 - Adding and removing contacts.
 - Direct peer-to-peer communication is required for messaging.
-- Consideration for transitioning from P2P to a server-based model, enabling message storage and forwarding for inactive recipients when resources permit.
+- Consideration for transitioning from P2P to a server-based model, enabling message logic.storage and forwarding for inactive recipients when resources permit.
 
 Please note that the transition to a server-based model may be explored if additional project time and resources become available.
