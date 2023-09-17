@@ -13,13 +13,15 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
 
 public class User {
-    private final String userName, hashedPassword;
+    private final String id, userName, hashedPassword;
     private final RSA keyRSA;
     private final MainKey keyMainKey;
 
     public User(String userName, String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        this.id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
         this.userName = userName;
         this.hashedPassword = Hash.hashPassword(password, userName);
         this.keyRSA = new RSA();
@@ -27,8 +29,9 @@ public class User {
         password = null;
     }
 
-    public User(String userName, String password, String hashedPassword, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
+    public User(String id, String userName, String password, String hashedPassword, String saltString, String ivString, String encryptedPublicKey, String encryptedPrivateKey)
             throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+        this.id = id;
         this.userName = userName;
         this.hashedPassword = hashedPassword;
         this.keyMainKey = new MainKey(password, saltString, ivString);
@@ -37,6 +40,10 @@ public class User {
         String publicKeyString = Crypto.decryptAES(encryptedPublicKey, getMainKey(), getIv());
         String privateKeyString = Crypto.decryptAES(encryptedPrivateKey, getMainKey(), getIv());
         this.keyRSA = new RSA(publicKeyString, privateKeyString);
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getUserName() {

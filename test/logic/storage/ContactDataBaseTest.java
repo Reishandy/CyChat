@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,13 +36,14 @@ class ContactDataBaseTest {
     @Test
     void testContactDataBase() {
         try {
+            String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Dog";
             String ivString = KeyString.IvToString(Crypto.generateIv());
             String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
             String publicKeyString = KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic());
 
             User user = new User("Cat", "I like cat");
-            Contact contact = new Contact(userName, publicKeyString, aesKeyString, ivString);
+            Contact contact = new Contact(id, userName, publicKeyString, aesKeyString, ivString);
 
             ContactDataBase.initialization(database);
             ContactDataBase.addIntoDatabase(contact, user, database);
@@ -49,6 +51,7 @@ class ContactDataBaseTest {
             Contact contactGet = ContactDataBase.getContactFromDatabase(user, database).get(0);
 
             assertNotNull(contactGet);
+            assertEquals(contactGet.getId(), contact.getId());
             assertEquals(contactGet.getUserName(), contact.getUserName());
             assertEquals(contactGet.getIp(), contact.getIp());
             assertEquals(contactGet.getAESKeyString(), contact.getAESKeyString());

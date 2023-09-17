@@ -5,6 +5,7 @@ import logic.security.KeyString;
 import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,18 +15,21 @@ class ContactTest {
     @Test
     void contactTest() {
         try {
+            String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Cat";
             String publicKeyString = KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic());
             String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
             String ivString = KeyString.IvToString(Crypto.generateIv());
-            contact = new Contact(userName, publicKeyString, aesKeyString, ivString);
+            contact = new Contact(id, userName, publicKeyString, aesKeyString, ivString);
 
+            assertNotNull(contact.getId());
             assertNotNull(contact.getUserName());
             assertNotNull(contact.getPublicKeyString());
             assertNotNull(contact.getAESKeyString());
             assertNotNull(contact.getIvString());
             assertNotNull(contact.getIp());
 
+            assertNotNull(contact.getId(), id);
             assertEquals(contact.getUserName(), userName);
             assertEquals(contact.getPublicKeyString(), publicKeyString);
             assertEquals(contact.getAESKeyString(), aesKeyString);

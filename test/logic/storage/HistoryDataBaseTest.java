@@ -7,21 +7,24 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class HistoryDataBaseTest {
-    String database, recipient;
+    String database, recipient, recipientId, senderId;
 
     @BeforeEach
     @AfterEach
     void clear() throws SQLException {
         database = "jdbc:sqlite:test.db";
         recipient = "Cat";
+        recipientId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
+        senderId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
 
         Connection connection = DriverManager.getConnection(database);
-        PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS " + recipient);
+        PreparedStatement statement = connection.prepareStatement("DROP TABLE IF EXISTS " + recipientId);
         statement.executeUpdate();
         statement.close();
         connection.close();
@@ -38,10 +41,10 @@ class HistoryDataBaseTest {
         histories.add(new History(recipient, time, message1));
         histories.add(new History(sender, time, message2));
 
-        HistoryDataBase.initialization(recipient, database);
-        HistoryDataBase.addIntoDatabase(recipient, histories, database);
+        HistoryDataBase.initialization(recipientId, database);
+        HistoryDataBase.addIntoDatabase(recipientId, histories, database);
 
-        ArrayList<History> historiesGet = HistoryDataBase.getHistoryFromDatabase(recipient, database);
+        ArrayList<History> historiesGet = HistoryDataBase.getHistoryFromDatabase(recipientId, database);
         assertNotNull(historiesGet);
         assertEquals(2, historiesGet.size());
 

@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CyChat:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CyChat_jar</output-path>
+    <root id="archive" name="CyChat.jar">
+      <element id="module-output" name="CyChat" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/flatlaf-3.2.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/sqlite-jdbc-3.43.0.0.jar" path-in-jar="/" />
+      <element id="dir-copy" path="$PROJECT_DIR$/res" />
+    </root>
+  </artifact>
+</component>

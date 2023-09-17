@@ -30,7 +30,7 @@ public class Exchange {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send user details to display who is trying to connect
-            String userDetails = user.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
+            String userDetails = user.getId() + ":" + user.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
             out.println(userDetails);
 
             // Receive decision signal
@@ -51,7 +51,7 @@ public class Exchange {
             out.println(encryptedKeyAESString + ":" + encryptedIvString + ":" + KeyString.PublicKeyToString(user.getPublicKey()));
 
             // Add to contact
-            Contact receiver = new Contact(peer.userName(), KeyString.PublicKeyToString(receiverPublicKey), keyAESString, ivString);
+            Contact receiver = new Contact(peer.id(), peer.userName(), KeyString.PublicKeyToString(receiverPublicKey), keyAESString, ivString);
             contactManager.addContact(receiver);
         } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
                  IllegalBlockSizeException | BadPaddingException e) {
@@ -73,8 +73,9 @@ public class Exchange {
 
                 // Receive userDetails
                 String[] userDetails = in.readLine().split(":");
-                String senderUserName = userDetails[0];
-                String senderIpAddress = userDetails[1];
+                String senderId = userDetails[0];
+                String senderUserName = userDetails[1];
+                String senderIpAddress = userDetails[2];
 
                 // Decision and send signal
                 boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange");
@@ -96,7 +97,7 @@ public class Exchange {
                 String senderPublicKey = receivedKeys[2];
 
                 // Add sender to contact
-                Contact sender = new Contact(senderUserName, senderPublicKey, keyAESString, ivString);
+                Contact sender = new Contact(senderId, senderUserName, senderPublicKey, keyAESString, ivString);
                 contactManager.addContact(sender);
             }
 

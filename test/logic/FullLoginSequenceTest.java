@@ -26,8 +26,8 @@ public class FullLoginSequenceTest {
 
     @BeforeEach
     @AfterEach
-    void clear() throws SQLException, IOException {
-        Connection connection = DriverManager.getConnection(DataBase.getDataBasePath());
+    void clear() throws SQLException {
+        Connection connection = DriverManager.getConnection(database);
         Statement statement = connection.createStatement();
         statement.executeUpdate("DROP TABLE IF EXISTS userdata;");
         statement.close();
@@ -49,6 +49,7 @@ public class FullLoginSequenceTest {
         try {
             User userA = new User(userName, password);
 
+            assertNotNull(userA.getId());
             assertNotNull(userA.getUserName());
             assertNotNull(userA.getHashedPassword());
             assertNotNull(userA.getIvString());
@@ -69,6 +70,7 @@ public class FullLoginSequenceTest {
     private void login() {
         user = UserDataBase.getUserFromDatabase(userName, password, database);
 
+        assertNotNull(user.getId());
         assertNotNull(user.getUserName());
         assertNotNull(user.getHashedPassword());
         assertNotNull(user.getIvString());

@@ -44,4 +44,15 @@ class DataBaseTest {
         assertTrue(databasePath.endsWith("CyChat.db"));
     }
 
+    @Test
+    public void testGetDataBasePathWithUserName() throws IOException {
+        String userName = "Cat";
+        System.setProperty("APPDATA", Paths.get(System.getProperty("java.io.tmpdir"), TEST_APPDATA).toString());
+
+        String databasePath = DataBase.getDataBasePath(userName);
+
+        assertNotNull(databasePath);
+        assertTrue(databasePath.startsWith("jdbc:sqlite"));
+        assertTrue(databasePath.endsWith(userName + ".db"));
+    }
 }

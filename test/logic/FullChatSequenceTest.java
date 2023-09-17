@@ -28,6 +28,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,9 +46,9 @@ public class FullChatSequenceTest {
     void clear() throws SQLException {
         Connection connection = DriverManager.getConnection(database);
 
-        PreparedStatement statement1 = connection.prepareStatement("DROP TABLE IF EXISTS " + senderName);
+        PreparedStatement statement1 = connection.prepareStatement("DROP TABLE IF EXISTS " + sender.getId());
         statement1.executeUpdate();
-        PreparedStatement statement2 = connection.prepareStatement("DROP TABLE IF EXISTS " + receiverName);
+        PreparedStatement statement2 = connection.prepareStatement("DROP TABLE IF EXISTS " + receiver.getId());
         statement2.executeUpdate();
 
         statement1.close();
@@ -71,8 +72,8 @@ public class FullChatSequenceTest {
 
         sender = new User(senderName, senderPassword);
         receiver = new User(receiverName, receiverPassword);
-        senderContact = new Contact(senderName, KeyString.PublicKeyToString(sender.getPublicKey()), aesKeyString, ivString);
-        receiverContact = new Contact(receiverName, KeyString.PublicKeyToString(receiver.getPublicKey()), aesKeyString, ivString);
+        senderContact = new Contact(sender.getId(), senderName, KeyString.PublicKeyToString(sender.getPublicKey()), aesKeyString, ivString);
+        receiverContact = new Contact(receiver.getId(), receiverName, KeyString.PublicKeyToString(receiver.getPublicKey()), aesKeyString, ivString);
         senderContact.setIp(Inet4Address.getLocalHost().getHostAddress());
         receiverContact.setIp(Inet4Address.getLocalHost().getHostAddress());
 

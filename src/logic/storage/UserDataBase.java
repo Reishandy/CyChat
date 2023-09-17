@@ -25,6 +25,7 @@ public class UserDataBase {
             preparedStatement = connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS userdata (" +
                             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                            "userID UNIQUE," +
                             "userName UNIQUE," +
                             "hashedPassword TEXT," +
                             "ivString TEXT," +
@@ -57,19 +58,20 @@ public class UserDataBase {
 
             preparedStatement = connection.prepareStatement(
                     "INSERT OR IGNORE INTO userdata (" +
-                            "userName, hashedPassword, ivString, saltString, " +
+                            "userId, userName, hashedPassword, ivString, saltString, " +
                             "encryptedPrivateKeyString, encryptedPublicKeyString) " +
-                            "VALUES (?, ?, ?, ?, ?, ?)"
+                            "VALUES (?, ?, ?, ?, ?, ?, ?)"
             );
-            preparedStatement.setString(1, user.getUserName());
-            preparedStatement.setString(2, user.getHashedPassword());
-            preparedStatement.setString(3, user.getIvString());
-            preparedStatement.setString(4, user.getSaltString());
+            preparedStatement.setString(1, user.getId());
+            preparedStatement.setString(2, user.getUserName());
+            preparedStatement.setString(3, user.getHashedPassword());
+            preparedStatement.setString(4, user.getIvString());
+            preparedStatement.setString(5, user.getSaltString());
 
             String encryptedPublicKey = Crypto.encryptAES(KeyString.PublicKeyToString(user.getPublicKey()), user.getMainKey(), user.getIv());
             String encryptedPrivateKey = Crypto.encryptAES(KeyString.PrivateKeyToString(user.getPrivateKey()), user.getMainKey(), user.getIv());
-            preparedStatement.setString(5, encryptedPrivateKey);
-            preparedStatement.setString(6, encryptedPublicKey);
+            preparedStatement.setString(6, encryptedPrivateKey);
+            preparedStatement.setString(7, encryptedPublicKey);
             preparedStatement.executeUpdate();
 
         } catch (SQLException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
@@ -100,6 +102,7 @@ public class UserDataBase {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
+                String userId = resultSet.getString("userId");
                 String userName = resultSet.getString("userName");
                 String hashedPassword = resultSet.getString("hashedPassword");
                 String ivString = resultSet.getString("ivString");
@@ -110,7 +113,7 @@ public class UserDataBase {
                 // This is not a good way to do it but i dont know what else
                 // Straight checking which user is correct when getting the database
                 if (userName.equals(userNameInput) && Hash.checkPassword(passwordInput, userNameInput, hashedPassword)) {
-                    user = new User(userName, passwordInput, hashedPassword, saltString, ivString, encryptedPublicKeyString, encryptedPrivateKeyString);
+                    user = new User(userId, userName, passwordInput, hashedPassword, saltString, ivString, encryptedPublicKeyString, encryptedPrivateKeyString);
                 }
             }
             return user;

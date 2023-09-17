@@ -25,6 +25,7 @@ public class ContactDataBase {
             preparedStatement = connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS contact (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "userId UNIQUE," +
                     "userName UNIQUE," +
                     "ip TEXT," +
                     "ivString TEXT," +
@@ -55,17 +56,18 @@ public class ContactDataBase {
             connection = DriverManager.getConnection(database);
 
             preparedStatement = connection.prepareStatement(
-                    "INSERT OR IGNORE INTO contact (userName, ip, ivString, " +
-                    "encryptedAESKeyString, encryptedPublicKeyString) VALUES (?, ?, ?, ?, ?)"
+                    "INSERT OR IGNORE INTO contact (userId, userName, ip, ivString, " +
+                    "encryptedAESKeyString, encryptedPublicKeyString) VALUES (?, ?, ?, ?, ?, ?)"
             );
-            preparedStatement.setString(1, contact.getUserName());
-            preparedStatement.setString(2, contact.getIp());
-            preparedStatement.setString(3, contact.getIvString());
+            preparedStatement.setString(1, contact.getId());
+            preparedStatement.setString(2, contact.getUserName());
+            preparedStatement.setString(3, contact.getIp());
+            preparedStatement.setString(4, contact.getIvString());
 
             String encryptedPublicKey = Crypto.encryptAES(KeyString.PublicKeyToString(contact.getPublicKey()), user.getMainKey(), user.getIv());
             String encryptedAESKey = Crypto.encryptAES(KeyString.SecretKeyToString(contact.getAESKey()), user.getMainKey(), user.getIv());
-            preparedStatement.setString(4, encryptedAESKey);
-            preparedStatement.setString(5, encryptedPublicKey);
+            preparedStatement.setString(5, encryptedAESKey);
+            preparedStatement.setString(6, encryptedPublicKey);
             preparedStatement.executeUpdate();
 
         } catch (SQLException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
@@ -96,6 +98,7 @@ public class ContactDataBase {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
+                String userId = resultSet.getString("userId");
                 String userName = resultSet.getString("userName");
                 String ip = resultSet.getString("ip");
                 String ivString = resultSet.getString("ivString");
@@ -105,7 +108,7 @@ public class ContactDataBase {
                 String aesKeyString = Crypto.decryptAES(encryptedAESKeyString, user.getMainKey(), user.getIv());
                 String publicKeyString = Crypto.decryptAES(encryptedPublicKeyString, user.getMainKey(), user.getIv());
 
-                Contact contact = new Contact(userName, publicKeyString, aesKeyString, ivString);
+                Contact contact = new Contact(userId, userName, publicKeyString, aesKeyString, ivString);
                 contact.setIp(ip);
                 contacts.add(contact);
             }

@@ -11,9 +11,9 @@ public class ContactManager {
         contacts = new ArrayList<>();
     }
 
-    public boolean checkContactExist(String userName) {
+    public boolean checkContactExist(String id) {
         for (Contact contact: contacts) {
-            if (contact.getUserName().equals(userName)) return true;
+            if (contact.getId().equals(id)) return true;
         }
         return false;
     }
@@ -22,18 +22,18 @@ public class ContactManager {
         contacts.add(contact);
     }
 
-    public void updateIpAddress(String userName, String ipAddress) {
+    public void updateIpAddress(String id, String ipAddress) {
         for (Contact contact: contacts) {
-            if (contact.getUserName().equals(userName)) {
+            if (contact.getId().equals(id)) {
                 contact.setIp(ipAddress);
                 return;
             }
         }
     }
 
-    public Contact getContact(String userName) {
+    public Contact getContact(String id) {
         for (Contact contact: contacts) {
-            if (contact.getUserName().equals(userName)) return contact;
+            if (contact.getId().equals(id)) return contact;
         }
         return null;
     }

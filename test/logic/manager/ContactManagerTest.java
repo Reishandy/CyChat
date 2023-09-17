@@ -8,6 +8,7 @@ import logic.security.Crypto;
 import logic.security.KeyString;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,7 +22,7 @@ class ContactManagerTest {
 
     @Test
     public void testCheckContactExist() throws NoSuchAlgorithmException {
-        Contact contact1 = new Contact("User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
+        Contact contact1 = new Contact("User1", "User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
@@ -31,7 +32,7 @@ class ContactManagerTest {
 
     @Test
     public void testAddContact() throws NoSuchAlgorithmException {
-        Contact contact1 = new Contact("User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
+        Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
@@ -41,7 +42,7 @@ class ContactManagerTest {
 
     @Test
     public void testUpdateIpAddress() throws NoSuchAlgorithmException {
-        Contact contact1 = new Contact("User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
+        Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
@@ -54,7 +55,7 @@ class ContactManagerTest {
 
     @Test
     public void testGetContact() throws NoSuchAlgorithmException {
-        Contact contact1 = new Contact("User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
+        Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 

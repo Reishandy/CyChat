@@ -6,19 +6,19 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class HistoryDataBase {
-    public static void initialization(String userName, String database) {
+    public static void initialization(String id, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
             connection = DriverManager.getConnection(database);
 
-            if (!userName.matches("[A-Za-z0-9_]+")) {
+            if (!id.matches("[A-Za-z0-9_]+")) {
                 throw new SQLException("Invalid table name");
             }
 
             preparedStatement = connection.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS " + userName + " (" +
+                    "CREATE TABLE IF NOT EXISTS " + id + " (" +
                             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "userName UNIQUE," +
                             "dateTime TEXT," +
@@ -40,18 +40,18 @@ public class HistoryDataBase {
         }
     }
 
-    public static void addIntoDatabase(String userName, ArrayList<History> histories, String database) {
+    public static void addIntoDatabase(String id, ArrayList<History> histories, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
             connection = DriverManager.getConnection(database);
 
-            if (!userName.matches("[A-Za-z0-9_]+")) {
+            if (!id.matches("[A-Za-z0-9_]+")) {
                 throw new SQLException("Invalid table name");
             }
             preparedStatement = connection.prepareStatement(
-                    "INSERT OR IGNORE INTO " + userName + " (userName, dateTime, encryptedMessage) VALUES (?, ?, ?)"
+                    "INSERT OR IGNORE INTO " + id + " (userName, dateTime, encryptedMessage) VALUES (?, ?, ?)"
             );
 
             for (History history: histories) {
@@ -74,7 +74,7 @@ public class HistoryDataBase {
         }
     }
 
-    public static ArrayList<History> getHistoryFromDatabase(String userName, String database) {
+    public static ArrayList<History> getHistoryFromDatabase(String id, String database) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -83,10 +83,10 @@ public class HistoryDataBase {
         try {
             connection = DriverManager.getConnection(database);
 
-            if (!userName.matches("[A-Za-z0-9_]+")) {
+            if (!id.matches("[A-Za-z0-9_]+")) {
                 throw new SQLException("Invalid table name");
             }
-            preparedStatement = connection.prepareStatement("SELECT * FROM " + userName);
+            preparedStatement = connection.prepareStatement("SELECT * FROM " + id);
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {

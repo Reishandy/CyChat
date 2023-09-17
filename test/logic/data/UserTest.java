@@ -15,6 +15,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,6 +29,7 @@ class UserTest {
             String password = "I like cat";
             user = new User(userName, password);
 
+            assertNotNull(user.getId());
             assertNotNull(user.getUserName());
             assertNotNull(user.getHashedPassword());
             assertNotNull(user.getIvString());
@@ -45,6 +47,7 @@ class UserTest {
     @Test
     void testInitializationWithData() {
         try {
+            String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Cat";
             String password = "I like cat";
             IvParameterSpec iv = Crypto.generateIv();
@@ -56,8 +59,9 @@ class UserTest {
             String encryptedPublicKey = Crypto.encryptAES(KeyString.PublicKeyToString(rsa.getPublicKey()), mainKey, iv);
             String encryptedPrivateKey = Crypto.encryptAES(KeyString.PrivateKeyToString(rsa.getPrivateKey()), mainKey, iv);
 
-            user = new User(userName, password, Hash.hashPassword(userName, password), KeyString.SaltToString(salt), KeyString.IvToString(iv), encryptedPublicKey, encryptedPrivateKey);
+            user = new User(id, userName, password, Hash.hashPassword(userName, password), KeyString.SaltToString(salt), KeyString.IvToString(iv), encryptedPublicKey, encryptedPrivateKey);
 
+            assertNotNull(user.getId());
             assertNotNull(user.getUserName());
             assertNotNull(user.getHashedPassword());
             assertNotNull(user.getIvString());
@@ -66,6 +70,7 @@ class UserTest {
             assertNotNull(user.getMainKey());
             assertNotNull(user.getSaltString());
 
+            assertEquals(id, user.getId());
             assertEquals(user.getHashedPassword(), Hash.hashPassword(password, userName));
             assertEquals(user.getIvString(), KeyString.IvToString(iv));
             assertEquals(user.getSaltString(), KeyString.SaltToString(salt));

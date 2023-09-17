@@ -62,7 +62,7 @@ public class ChatSender {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send user details to display who is trying to connect
-            String userDetails = sender.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
+            String userDetails = sender.getId() + ":" + sender.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
             out.println(userDetails);
 
             // Receive decision signal
@@ -76,8 +76,8 @@ public class ChatSender {
     }
 
     private void loadHistory() {
-        HistoryDataBase.initialization(receiver.getUserName(), database);
-        history = HistoryDataBase.getHistoryFromDatabase(receiver.getUserName(), database);
+        HistoryDataBase.initialization(receiver.getId(), database);
+        history = HistoryDataBase.getHistoryFromDatabase(receiver.getId(), database);
     }
 
     private void initConnection() throws IOException {
@@ -116,7 +116,7 @@ public class ChatSender {
     }
 
     public void closeSession() throws IOException {
-        HistoryDataBase.addIntoDatabase(receiver.getUserName(), history, database);
+        HistoryDataBase.addIntoDatabase(receiver.getId(), history, database);
 
         if (receiver != null) receiver = null;
         if (senderSocket != null) senderSocket.close();

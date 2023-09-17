@@ -9,10 +9,10 @@ import java.io.IOException;
 import java.net.*;
 
 public class Broadcast {
-    public static void broadcast(String userName) throws UnknownHostException {
+    public static void broadcast(String id, String userName) throws UnknownHostException {
         try (DatagramSocket broadcastSocket = new DatagramSocket()) {
             while (!Thread.currentThread().isInterrupted()) {
-                String broadcastMessage = userName + ":" + Inet4Address.getLocalHost().getHostAddress();
+                String broadcastMessage = id + ":" + userName + ":" + Inet4Address.getLocalHost().getHostAddress();
 
                 DatagramPacket packet = new DatagramPacket(
                         broadcastMessage.getBytes(),
@@ -33,7 +33,7 @@ public class Broadcast {
         }
     }
 
-    public static void listenForBroadcast(String ownUserName, ContactManager contactManager, PeerManager peerManager) {
+    public static void listenForBroadcast(String ownId, ContactManager contactManager, PeerManager peerManager) {
         try (DatagramSocket listenSocket = new DatagramSocket(Constant.broadcastPort)) {
             byte[] buffer = new byte[Constant.bufferListenForBroadcast];
 
@@ -43,16 +43,17 @@ public class Broadcast {
 
                 String[] receivedMessage = new String(packet.getData(), 0, packet.getLength())
                         .split(":");
-                String userName = receivedMessage[0];
-                String ipAddress = receivedMessage[1];
+                String id = receivedMessage[0];
+                String userName = receivedMessage[1];
+                String ipAddress = receivedMessage[2];
 
-                if (userName.equals(ownUserName) && ipAddress.equals(Inet4Address.getLocalHost().getHostAddress())) continue;
-                if (contactManager.checkContactExist(userName)) {
-                    contactManager.updateIpAddress(userName, ipAddress);
+                if (id.equals(ownId) && ipAddress.equals(Inet4Address.getLocalHost().getHostAddress())) continue;
+                if (contactManager.checkContactExist(id)) {
+                    contactManager.updateIpAddress(id, ipAddress);
                     continue;
                 }
 
-                Peer newPeer = new Peer(userName, ipAddress);
+                Peer newPeer = new Peer(id, userName, ipAddress);
                 peerManager.addPeer(newPeer);
             }
         } catch (IOException e) {

@@ -40,6 +40,7 @@ class UserDataBaseTest {
             User userGet = UserDataBase.getUserFromDatabase(userName, password, database);
 
             assertNotNull(userGet);
+            assertEquals(user.getId(), userGet.getId());
             assertEquals(user.getUserName(), userGet.getUserName());
             assertEquals(user.getHashedPassword(), userGet.getHashedPassword());
             assertEquals(user.getSaltString(), userGet.getSaltString());

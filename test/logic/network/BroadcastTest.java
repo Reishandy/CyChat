@@ -16,13 +16,14 @@ import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BroadcastTest {
     ContactManager contactManager;
     PeerManager peerManager;
-    String userName, localHostIpAddress, testIpAddress, newUserName;
+    String id, userName, localHostIpAddress, testIpAddress, newUserName, newId, dogId;
     Contact contact;
 
     @BeforeEach
@@ -31,15 +32,18 @@ class BroadcastTest {
             contactManager = new ContactManager();
             peerManager = new PeerManager();
 
+            id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
+            dogId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             userName = "Cat";
             localHostIpAddress = Inet4Address.getLocalHost().getHostAddress();
             testIpAddress = incrementIPAddress(localHostIpAddress, 10);
 
-            contact = new Contact("Dog", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
+            contact = new Contact(dogId, "Dog", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                     KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)),
                     KeyString.IvToString(Crypto.generateIv()));
             contactManager.addContact(contact);
 
+            newId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             newUserName = "Dog_haters_123_xXx";
         } catch (NoSuchAlgorithmException | UnknownHostException e) {
             fail("No errors should be thrown");
@@ -50,7 +54,7 @@ class BroadcastTest {
     void broadcastTest() throws InterruptedException {
         Runnable broadcastTask = () -> {
             try {
-                Broadcast.broadcast(userName);
+                Broadcast.broadcast(id, userName);
             } catch (UnknownHostException e) {
                 fail("UnknownHostException should not be thrown");
             }
@@ -62,11 +66,14 @@ class BroadcastTest {
         String[] receivedMessage = listenTest();
         assertNotNull(receivedMessage);
 
-        String getUserName = receivedMessage[0];
-        String getIpAddress = receivedMessage[1];
+        String getId = receivedMessage[0];
+        String getUserName = receivedMessage[1];
+        String getIpAddress = receivedMessage[2];
+        assertNotNull(getId);
         assertNotNull(getUserName);
         assertNotNull(getIpAddress);
 
+        assertEquals(id, getId);
         assertEquals(userName, getUserName);
         assertEquals(localHostIpAddress, getIpAddress);
 
@@ -76,33 +83,33 @@ class BroadcastTest {
     @Test
     void listenForBroadcastTest() throws InterruptedException {
         Runnable listenForBroadcastTask = () -> {
-            Broadcast.listenForBroadcast(userName, contactManager, peerManager);
+            Broadcast.listenForBroadcast(id, contactManager, peerManager);
         };
         Thread listenThread = new Thread(listenForBroadcastTask);
         listenThread.start();
 
         // Test for own broadcast
-        broadcastForListenTest(userName, localHostIpAddress);
+        broadcastForListenTest(id, userName, localHostIpAddress);
         Thread.sleep(100); // Wait first so that the listener can capture and do some magic
         assertEquals(1, contactManager.getContacts().size());
         assertTrue(peerManager.getPeers().isEmpty());
 
         // Test for contact
-        broadcastForListenTest(contact.getUserName(), testIpAddress);
+        broadcastForListenTest(contact.getId(), contact.getUserName(), testIpAddress);
         Thread.sleep(100);
-        assertTrue(contactManager.checkContactExist("Dog"));
+        assertTrue(contactManager.checkContactExist(dogId));
 
-        Contact getContact = contactManager.getContact("Dog");
+        Contact getContact = contactManager.getContact(dogId);
         assertNotNull(getContact);
         assertEquals(testIpAddress, getContact.getIp());
 
         // Test for peer
-        broadcastForListenTest(newUserName, testIpAddress);
+        broadcastForListenTest(newId, newUserName, testIpAddress);
         Thread.sleep(100);
         assertEquals(1, peerManager.getPeers().size());
-        assertTrue(peerManager.checkPeerExist(newUserName));
+        assertTrue(peerManager.checkPeerExist(newId));
 
-        Peer getPeer = peerManager.getPeer(newUserName);
+        Peer getPeer = peerManager.getPeer(newId);
         assertNotNull(getPeer);
         assertEquals(testIpAddress, getPeer.ip());
 
@@ -121,9 +128,9 @@ class BroadcastTest {
         }
     }
 
-    void broadcastForListenTest(String userName, String ipAddress) {
+    void broadcastForListenTest(String id, String userName, String ipAddress) {
         try (DatagramSocket broadcastSocket = new DatagramSocket();) {
-            String broadcastMessage = userName + ":" + ipAddress;
+            String broadcastMessage = id + ":" + userName + ":" + ipAddress;
 
             DatagramPacket packet = new DatagramPacket(
                     broadcastMessage.getBytes(),

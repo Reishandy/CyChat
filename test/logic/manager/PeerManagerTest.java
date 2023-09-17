@@ -4,6 +4,8 @@ import logic.data.Peer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class PeerManagerTest {
@@ -16,7 +18,7 @@ class PeerManagerTest {
 
     @Test
     public void testCheckPeerExist() {
-        Peer peer1 = new Peer("User1", "192.168.0.0");
+        Peer peer1 = new Peer("User1","User1", "192.168.0.0");
         peerManager.addPeer(peer1);
 
         assertTrue(peerManager.checkPeerExist("User1"));
@@ -25,7 +27,7 @@ class PeerManagerTest {
 
     @Test
     public void testAddPeer() {
-        Peer peer1 = new Peer("User1", "192.168.0.0");
+        Peer peer1 = new Peer("User1","User1", "192.168.0.0");
         peerManager.addPeer(peer1);
 
         assertEquals(1, peerManager.getPeers().size());
@@ -34,7 +36,7 @@ class PeerManagerTest {
 
     @Test
     public void testGetPeer() {
-        Peer peer1 = new Peer("User1", "192.168.0.0");
+        Peer peer1 = new Peer("User1","User1", "192.168.0.0");
         peerManager.addPeer(peer1);
 
         Peer retrievedPeer = peerManager.getPeer("User1");

@@ -12,6 +12,7 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,7 +35,7 @@ class ExchangeTest {
         receiverPassword = "I hate cats";
         receiverUser = new User(receiverUserName, receiverPassword);
         receiverContactManager = new ContactManager();
-        receiverPeer = new Peer(receiverUserName, testIpAddress);
+        receiverPeer = new Peer(receiverUser.getId(), receiverUserName, testIpAddress);
 
         // TODO: automate decision
     }
@@ -62,15 +63,17 @@ class ExchangeTest {
         assertTrue(status);
         assertEquals(1, senderContactManager.getContacts().size());
         assertEquals(1, receiverContactManager.getContacts().size());
-        assertTrue(senderContactManager.checkContactExist(receiverUserName));
-        assertTrue(receiverContactManager.checkContactExist(senderUserName));
+        assertTrue(senderContactManager.checkContactExist(receiverUser.getId()));
+        assertTrue(receiverContactManager.checkContactExist(senderUser.getId()));
 
-        Contact senderGetFromReceiver = receiverContactManager.getContact(senderUserName);
-        Contact receiverGetFromSender = senderContactManager.getContact(receiverUserName);
+        Contact senderGetFromReceiver = receiverContactManager.getContact(senderUser.getId());
+        Contact receiverGetFromSender = senderContactManager.getContact(receiverUser.getId());
 
+        assertEquals(senderUser.getId(), senderGetFromReceiver.getId());
         assertEquals(senderUserName, senderGetFromReceiver.getUserName());
         assertEquals(KeyString.PublicKeyToString(senderUser.getPublicKey()), senderGetFromReceiver.getPublicKeyString());
 
+        assertEquals(receiverUser.getId(), receiverGetFromSender.getId());
         assertEquals(receiverUserName, receiverGetFromSender.getUserName());
         assertEquals(KeyString.PublicKeyToString(receiverUser.getPublicKey()), receiverGetFromSender.getPublicKeyString());
 

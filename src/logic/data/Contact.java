@@ -9,12 +9,13 @@ import java.security.PublicKey;
 import java.util.Objects;
 
 public class Contact {
-    private final String userName;
+    private final String id, userName;
     private String ip;
     private final RSA keyRSA;
     private final AES keyAES;
 
-    public Contact(String userName, String publicKeyString, String aesKeyString, String ivString) {
+    public Contact(String id, String userName, String publicKeyString, String aesKeyString, String ivString) {
+        this.id = id;
         this.ip = "192.168.0.0";
         this.userName = userName;
         this.keyRSA = new RSA(publicKeyString);
@@ -27,6 +28,10 @@ public class Contact {
 
     public String getIp() {
         return ip;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getUserName() {

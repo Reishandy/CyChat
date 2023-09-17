@@ -11,9 +11,9 @@ public class PeerManager {
         peers = new ArrayList<>();
     }
 
-    public boolean checkPeerExist(String userName) {
+    public boolean checkPeerExist(String id) {
         for (Peer peer: peers) {
-            if (peer.userName().equals(userName)) return true;
+            if (peer.id().equals(id)) return true;
         }
         return false;
     }
@@ -22,9 +22,9 @@ public class PeerManager {
         peers.add(peer);
     }
 
-    public Peer getPeer(String userName) {
+    public Peer getPeer(String id   ) {
         for (Peer peer: peers) {
-            if (peer.userName().equals(userName)) return peer;
+            if (peer.id().equals(id)) return peer;
         }
         return null;
     }

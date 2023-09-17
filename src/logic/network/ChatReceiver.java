@@ -69,15 +69,16 @@ public class ChatReceiver {
 
                 // Receive userDetails
                 String[] userDetails = in.readLine().split(":");
-                String senderUserName = userDetails[0];
-                String senderIpAddress = userDetails[1];
+                String senderId = userDetails[0];
+                String senderUserName = userDetails[1];
+                String senderIpAddress = userDetails[2];
 
                 // Decision and send signal
                 boolean decision = decisionHandler(senderUserName, senderIpAddress, "chat connection");
                 if (decision) {
                     out.println(Constant.acceptSignal);
                     isConnected = true;
-                    sender = contactManager.getContact(senderUserName);
+                    sender = contactManager.getContact(senderId);
 
                     loadHistory();
                     initConnection();
@@ -95,8 +96,8 @@ public class ChatReceiver {
     }
 
     private void loadHistory() throws IOException {
-        HistoryDataBase.initialization(sender.getUserName(), database);
-        history = HistoryDataBase.getHistoryFromDatabase(sender.getUserName(), database);
+        HistoryDataBase.initialization(sender.getId(), database);
+        history = HistoryDataBase.getHistoryFromDatabase(sender.getId(), database);
     }
 
     private void initConnection() throws IOException {
@@ -136,7 +137,7 @@ public class ChatReceiver {
     }
 
     public void closeSession() throws IOException {
-        HistoryDataBase.addIntoDatabase(sender.getUserName(), history, database);
+        HistoryDataBase.addIntoDatabase(sender.getId(), history, database);
 
         isConnected = false;
         if (sender != null) sender = null;

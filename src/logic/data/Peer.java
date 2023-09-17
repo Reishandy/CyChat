@@ -2,7 +2,7 @@ package logic.data;
 
 import java.util.Objects;
 
-public record Peer(String userName, String ip) {
+public record Peer(String id, String userName, String ip) {
 
     @Override
     public boolean equals(Object o) {
