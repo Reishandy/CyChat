@@ -1,5 +1,7 @@
 package logic.data;
 
+import java.awt.*;
+
 public class Constant {
     public static String algorithmAES = "AES";
     public static String algorithmRSA = "RSA";
@@ -18,4 +20,9 @@ public class Constant {
     public static int chatPort = 6193;
     public static int chatHandshakePort = 6195;
     public static int bufferListenForBroadcast = 1024;
+
+    public static final Font NAME_FONT = new Font("Barlow Black", Font.PLAIN, 24);
+    public static final Font DETAILS_FONT = new Font("Barlow Medium", Font.PLAIN, 18);
+    public static final Color MAIN_ACCENT_COLOR = Color.decode("#8C52FF");
+    public static final Color SECONDARY_ACCENT_COLOR = Color.decode("#545454");
 }

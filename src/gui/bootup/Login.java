@@ -1,13 +1,11 @@
 package gui.bootup;
 
-import gui.contact.Contact;
+import gui.contact.ContactGUI;
 import logic.data.User;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -50,7 +48,7 @@ public class Login {
                     User user = UserDataBase.getUserFromDatabase(userName, password, DataBase.getDataBasePath());
                     if (user != null) {
                         SplashScreen.user = user;
-                        SplashScreen.changePanel(Contact.getContact());
+                        SplashScreen.changePanel(ContactGUI.getContact());
                     } else {
                         userNameWarning.setText("User not found");
                         passwordWarning.setText("User not found");

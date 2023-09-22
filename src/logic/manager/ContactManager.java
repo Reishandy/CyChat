@@ -5,7 +5,7 @@ import logic.data.Contact;
 import java.util.ArrayList;
 
 public class ContactManager {
-    private final ArrayList<Contact> contacts;
+    private ArrayList<Contact> contacts;
 
     public ContactManager() {
         contacts = new ArrayList<>();
@@ -20,6 +20,10 @@ public class ContactManager {
 
     public void addContact(Contact contact) {
         contacts.add(contact);
+    }
+
+    public void addContact(ArrayList<Contact> contact) {
+        contacts = contact;
     }
 
     public void updateIpAddress(String id, String ipAddress) {

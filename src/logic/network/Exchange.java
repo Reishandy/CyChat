@@ -7,6 +7,7 @@ import logic.data.User;
 import logic.manager.ContactManager;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import logic.storage.ContactDataBase;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -24,7 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 
 public class Exchange {
-    public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager) {
+    public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager, String database) {
         try (Socket socket = new Socket(peer.ip(), Constant.handshakePort)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -53,6 +54,7 @@ public class Exchange {
             // Add to contact
             Contact receiver = new Contact(peer.id(), peer.userName(), KeyString.PublicKeyToString(receiverPublicKey), keyAESString, ivString);
             contactManager.addContact(receiver);
+            ContactDataBase.addIntoDatabase(receiver, user, database);
         } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
                  IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);

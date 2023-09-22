@@ -1,6 +1,7 @@
 package gui.bootup;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import logic.data.Constant;
 import logic.data.User;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;
@@ -43,7 +44,7 @@ public class SplashScreen {
             UIManager.put( "ScrollBar.thumbArc", 999 );
             UIManager.put( "ScrollBar.trackInsets", new Insets( 2, 4, 2, 4 ) );
             UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
-            UIManager.put( "ScrollBar.track", new Color( 0xe0e0e0 ) );
+            UIManager.put( "ScrollBar.track", Constant.SECONDARY_ACCENT_COLOR);
         } catch (
                 UnsupportedLookAndFeelException e) {
             throw new RuntimeException(e);
@@ -73,7 +74,8 @@ public class SplashScreen {
         UserDataBase.initialization(DataBase.getDataBasePath());
         boolean tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
 
-        Thread.sleep(5000);
+
+        //Thread.sleep(5000);
 
         if (tableEmpty) {
             changePanel(Register.getRegister());

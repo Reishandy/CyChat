@@ -4,20 +4,26 @@ import logic.data.Contact;
 import logic.data.Peer;
 import logic.data.User;
 import logic.manager.ContactManager;
+import logic.security.KeyString;
+import logic.storage.ContactDataBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.KeyString;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExchangeTest {
-    String senderUserName, senderPassword, receiverUserName, receiverPassword, testIpAddress;
+    String senderUserName, senderPassword, receiverUserName, receiverPassword, testIpAddress, database;
     User senderUser, receiverUser;
     Peer receiverPeer;
     ContactManager senderContactManager, receiverContactManager;
@@ -37,11 +43,21 @@ class ExchangeTest {
         receiverContactManager = new ContactManager();
         receiverPeer = new Peer(receiverUser.getId(), receiverUserName, testIpAddress);
 
+        database = "jdbc:sqlite:./db/" + senderUser.getId() + ".db";
+        ContactDataBase.initialization(database);
         // TODO: automate decision
     }
 
+    @AfterEach
+    void tearDown() throws IOException {
+        Files.walk(Paths.get("./db/"))
+                .filter(Files::isRegularFile)
+                .map(Path::toFile)
+                .forEach(File::delete);
+    }
+
     void refused() {
-        boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager);
+        boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager, database);
 
         assertFalse(status);
         assertEquals(0, senderContactManager.getContacts().size());
@@ -56,7 +72,7 @@ class ExchangeTest {
         Thread listenerThread = new Thread(listenerTask);
         listenerThread.start();
 
-        boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager);
+        boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager, database);
 
         Thread.sleep(100);
 
