@@ -3,10 +3,13 @@ package gui.contact;
 import gui.bootup.SplashScreen;
 import logic.data.Contact;
 import logic.data.Peer;
+import logic.data.User;
 import logic.manager.ContactManager;
 import logic.manager.PeerManager;
-import logic.security.Crypto;
-import logic.security.KeyString;
+import logic.network.Broadcast;
+import logic.network.ChatReceiver;
+import logic.network.ChatSender;
+import logic.network.Exchange;
 import logic.storage.ContactDataBase;
 import logic.storage.DataBase;
 
@@ -15,14 +18,21 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.net.UnknownHostException;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Vector;
 
 public class ContactGUI {
     public static ContactManager contactManager;
     public static PeerManager peerManager;
+    public static ChatSender chatSender;
+    public static ChatReceiver chatReceiver;
+
+    private final User user;
+    private Thread broadcastThread;
+    private Thread broadcastListenerThread;
+    private Thread exchangeListenerThread;
+
 
     private JPanel contactPanel;
     private JPanel topBarPanel;
@@ -33,43 +43,64 @@ public class ContactGUI {
     private JLabel peerTitle;
 
     public ContactGUI() {
+        // Set up some ui stuff
         topBarPanel.setBackground(new Color(140, 82, 255));
         contactListPanel.setBackground(Color.WHITE);
         peerListPanel.setBackground(Color.WHITE);
 
+        // Get user from boot up
+        this.user = SplashScreen.user;
+
         // TODO: add some loading animation
 
+        // Load contact and set up peer
         try {
             initContactManager();
             peerManager = new PeerManager();
-
-            // TODO: DEBUG simulate getting contact and discovering peer
-            for (int i = 0; i < 30; i++) {
-                contactManager.addContact(new Contact(
-                        String.valueOf(new Random().nextInt(100)),
-                        String.valueOf(new Random().nextInt(100)),
-                        KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                        KeyString.SecretKeyToString(Crypto.generateAESKey(128)),
-                        KeyString.IvToString(Crypto.generateIv())
-                ));
-
-                peerManager.addPeer(new Peer(
-                        String.valueOf(new Random().nextInt(1000)),
-                        String.valueOf(new Random().nextInt(1000)),
-                        String.valueOf(new Random().nextInt(1000))
-                ));
-            }
-        } catch (IOException | NoSuchAlgorithmException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        // TODO: chat mechanism boot-up
+        // Broadcast own detail
+        broadcastThread = new Thread(() -> {
+            try {
+                Broadcast.broadcast(user.getId(), user.getUserName());
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        broadcastThread.start();
 
-        // TODO: make this regally update
-        displayContacts();
-        displayPeers();
+        // Listen for other broadcast // TODO: Test this
+        broadcastListenerThread = new Thread(() -> {
+           Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
+        });
+        broadcastListenerThread.start();
+
+        // Listen for contact exchange request // TODO: test this
+        exchangeListenerThread = new Thread(() -> {
+            Exchange.listener(user, contactManager);
+        });
+        exchangeListenerThread.start();
+
+        // Chat boot-up // TODO: test this
+        try {
+            chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
+            chatReceiver = new ChatReceiver(user, contactManager, DataBase.getDataBasePath(user.getId()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         // TODO: chatReceiver method... that will go to the chatGUI
+        //      make a method on the chat receiver to check if connected
+        //      using while true loop and on separate thread
+
+        // TODO: disable and re-enable broadcast and exchange thread
+
+        // TODO: make this regally update, using thread?
+        // Display contact and peer
+        displayContacts();
+        displayPeers();
     }
 
     private void displayPeers() {
@@ -79,12 +110,14 @@ public class ContactGUI {
         peerList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    int index = peerList.locationToIndex(e.getPoint());
-                    // TODO: exchange contact
-                    Peer peer = peerList.getModel().getElementAt(index);
+                    // Stop the broadcast and exchange thread
+                    broadcastThread.interrupt();
+                    broadcastListenerThread.interrupt();
+                    exchangeListenerThread.interrupt();
 
-                    // TODO: DEBUG
-                    peerTitle.setText(String.valueOf(new Random().nextInt(100)));
+                    // TODO: exchange contact
+                    int index = peerList.locationToIndex(e.getPoint());
+                    Peer peer = peerList.getModel().getElementAt(index);
                 }
             }
         });
@@ -101,12 +134,14 @@ public class ContactGUI {
         contactList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    int index = contactList.locationToIndex(e.getPoint());
-                    // TODO: connect
-                    Contact contact = contactList.getModel().getElementAt(index);
+                    // Stop the broadcast and exchange thread
+                    broadcastThread.interrupt();
+                    broadcastListenerThread.interrupt();
+                    exchangeListenerThread.interrupt();
 
-                    // TODO: DEBUG
-                    peerTitle.setText(String.valueOf(new Random().nextInt(100)));
+                    // TODO: connect
+                    int index = contactList.locationToIndex(e.getPoint());
+                    Contact contact = contactList.getModel().getElementAt(index);
                 }
             }
         });
@@ -117,11 +152,11 @@ public class ContactGUI {
     }
 
     private void initContactManager() throws IOException {
-        String database = DataBase.getDataBasePath(SplashScreen.user.getId());
+        String database = DataBase.getDataBasePath(user.getId());
 
         ContactDataBase.initialization(database);
         contactManager = new ContactManager();
-        contactManager.addContact(ContactDataBase.getContactFromDatabase(SplashScreen.user, database));
+        contactManager.addContact(ContactDataBase.getContactFromDatabase(user, database));
     }
 
     public static JPanel getContact() {

@@ -52,6 +52,15 @@ public class Register {
                 correct = false;
             }
 
+            if (userNameTextField.getText().length() < 3) {
+                userNameWarning.setText("Must be 3 characters or more");
+                correct = false;
+            }
+            if (password.length() < 8) {
+                passwordWarning.setText("Must be 8 characters or more");
+                correct = false;
+            }
+
             if (!password.equals(reInputPassword)) {
                 passwordWarning.setText("Password does not match");
                 reInputPasswordWarning.setText("Password does not match");
