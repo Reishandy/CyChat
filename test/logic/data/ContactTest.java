@@ -18,7 +18,7 @@ class ContactTest {
             String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Cat";
             String publicKeyString = KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic());
-            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
             String ivString = KeyString.IvToString(Crypto.generateIv());
             contact = new Contact(id, userName, publicKeyString, aesKeyString, ivString);
 

@@ -3,24 +3,21 @@ package logic.data;
 import java.awt.*;
 
 public class Constant {
-    public static String algorithmAES = "AES";
-    public static String algorithmRSA = "RSA";
-    public static String algorithmAESCFB = "AES/CFB/PKCS5Padding";
-    public static String algorithmSHA512 = "SHA-512";
-    public static String acceptSignal = "ACCEPTED";
-    public static String refuseSignal = "REFUSED";
+    public static final String ALGORITHM_AES = "AES";
+    public static final String ALGORITHM_RSA = "RSA";
+    public static final String AES_CFB_PKCS_5_PADDING = "AES/CFB/PKCS5Padding";
+    public static final String ALGORITHM_SHA_512 = "SHA-512";
+    public static final String ACCEPTED = "ACCEPTED";
+    public static final String REFUSED = "REFUSED";
 
-    public static int keySizeAES128 = 128;
-    public static int keySizeAES256 = 256;
-    public static int bit16 = 16;
-    public static int keySizeRSA = 2048;
-    public static int mainKeyIteration = 1000;
-    public static int broadcastPort = 6189;
-    public static int handshakePort = 6191;
-    public static int chatPort = 6193;
-    public static int chatHandshakePort = 6195;
-    public static int bufferListenForBroadcast = 1024;
-
+    public static final int KEY_SIZE_AES_128 = 128;
+    public static final int KEY_SIZE_AES_256 = 256;
+    public static final int BIT_16 = 16;
+    public static final int KEY_SIZE_RSA = 2048;
+    public static final int MAIN_KEY_ITERATION = 1000;
+    public static final int MIN_PORT_NUMBER = 1024;
+    public static final int MAX_PORT_NUMBER = 49151;
+    public static final int BUFFER_LISTEN_FOR_BROADCAST = 1024;
     public static final Font NAME_FONT = new Font("Barlow Black", Font.PLAIN, 24);
     public static final Font DETAILS_FONT = new Font("Barlow Medium", Font.PLAIN, 18);
     public static final Color MAIN_ACCENT_COLOR = Color.decode("#8C52FF");

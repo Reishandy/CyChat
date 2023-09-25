@@ -18,7 +18,7 @@ public class Broadcast {
                         broadcastMessage.getBytes(),
                         broadcastMessage.length(),
                         Inet4Address.getByName("255.255.255.255"),
-                        Constant.broadcastPort
+                        PortAssigner.assignRandomPort()
                 );
                 broadcastSocket.send(packet);
 
@@ -34,8 +34,8 @@ public class Broadcast {
     }
 
     public static void listenForBroadcast(String ownId, ContactManager contactManager, PeerManager peerManager) {
-        try (DatagramSocket listenSocket = new DatagramSocket(Constant.broadcastPort)) {
-            byte[] buffer = new byte[Constant.bufferListenForBroadcast];
+        try (DatagramSocket listenSocket = new DatagramSocket(PortAssigner.assignRandomPort())) {
+            byte[] buffer = new byte[Constant.BUFFER_LISTEN_FOR_BROADCAST];
 
             while (!Thread.currentThread().isInterrupted()) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);

@@ -66,7 +66,7 @@ public class ChatSender {
             out.println(userDetails);
 
             // Receive decision signal
-            if (in.readLine().equals(Constant.refuseSignal)) return false;
+            if (in.readLine().equals(Constant.REFUSED)) return false;
         } catch (UnknownHostException e) {
             return false;
         } catch (IOException e) {

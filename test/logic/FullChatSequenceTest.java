@@ -28,7 +28,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,7 +66,7 @@ public class FullChatSequenceTest {
         message1 = "Water is better than Fire!";
         message2 = "No!! Fire is way better that Water";
 
-        aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+        aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
         ivString = KeyString.IvToString(Crypto.generateIv());
 
         sender = new User(senderName, senderPassword);

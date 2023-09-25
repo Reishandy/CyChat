@@ -27,7 +27,7 @@ public class Hash {
 
     public static String hashPassword(String password, String userName) throws NoSuchAlgorithmException {
         String combined = combinePasswordUserName(password, userName);
-        MessageDigest digest = MessageDigest.getInstance(Constant.algorithmSHA512);
+        MessageDigest digest = MessageDigest.getInstance(Constant.ALGORITHM_SHA_512);
         byte[] hashBytes = digest.digest(combined.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(hashBytes);
     }

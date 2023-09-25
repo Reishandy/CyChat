@@ -22,7 +22,7 @@ public class KeyString {
 
     public static SecretKey StringToSecretKey(String encodedKey) {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
-        return new SecretKeySpec(decodedKey, 0, decodedKey.length, Constant.algorithmAES);
+        return new SecretKeySpec(decodedKey, 0, decodedKey.length, Constant.ALGORITHM_AES);
     }
 
     public static String IvToString(IvParameterSpec iv) {
@@ -51,7 +51,7 @@ public class KeyString {
     public static PublicKey StringToPublicKey(String encodedKey) {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
         try {
-            KeyFactory keyFactory = KeyFactory.getInstance(Constant.algorithmRSA);
+            KeyFactory keyFactory = KeyFactory.getInstance(Constant.ALGORITHM_RSA);
             return keyFactory.generatePublic(new X509EncodedKeySpec(decodedKey));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
@@ -66,7 +66,7 @@ public class KeyString {
     public static PrivateKey StringToPrivateKey(String encodedKey) {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
         try {
-            KeyFactory keyFactory = KeyFactory.getInstance(Constant.algorithmRSA);
+            KeyFactory keyFactory = KeyFactory.getInstance(Constant.ALGORITHM_RSA);
             return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);

@@ -39,7 +39,7 @@ class BroadcastTest {
             testIpAddress = incrementIPAddress(localHostIpAddress, 10);
 
             contact = new Contact(dogId, "Dog", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                    KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)),
+                    KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)),
                     KeyString.IvToString(Crypto.generateIv()));
             contactManager.addContact(contact);
 
@@ -117,8 +117,8 @@ class BroadcastTest {
     }
 
     String[] listenTest() {
-        try (DatagramSocket listenSocket = new DatagramSocket(Constant.broadcastPort)) {
-            byte[] buffer = new byte[Constant.bufferListenForBroadcast];
+        try (DatagramSocket listenSocket = new DatagramSocket(PortAssigner.assignRandomPort())) {
+            byte[] buffer = new byte[Constant.BUFFER_LISTEN_FOR_BROADCAST];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             listenSocket.receive(packet);
 
@@ -136,7 +136,7 @@ class BroadcastTest {
                     broadcastMessage.getBytes(),
                     broadcastMessage.length(),
                     Inet4Address.getByName("255.255.255.255"),
-                    Constant.broadcastPort
+                    PortAssigner.assignRandomPort()
             );
             broadcastSocket.send(packet);
         } catch (IOException e) {

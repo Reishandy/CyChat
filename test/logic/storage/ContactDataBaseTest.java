@@ -39,7 +39,7 @@ class ContactDataBaseTest {
             String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Dog";
             String ivString = KeyString.IvToString(Crypto.generateIv());
-            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
             String publicKeyString = KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic());
 
             User user = new User("Cat", "I like cat");

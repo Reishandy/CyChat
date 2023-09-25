@@ -8,7 +8,6 @@ import logic.security.Crypto;
 import logic.security.KeyString;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,7 +22,7 @@ class ContactManagerTest {
     @Test
     public void testCheckContactExist() throws NoSuchAlgorithmException {
         Contact contact1 = new Contact("User1", "User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
+                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
         assertTrue(contactManager.checkContactExist("User1"));
@@ -33,7 +32,7 @@ class ContactManagerTest {
     @Test
     public void testAddContact() throws NoSuchAlgorithmException {
         Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
+                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
         assertEquals(1, contactManager.getContacts().size());
@@ -43,7 +42,7 @@ class ContactManagerTest {
     @Test
     public void testUpdateIpAddress() throws NoSuchAlgorithmException {
         Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
+                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
         contactManager.updateIpAddress("User1", "192.168.0.2");
@@ -56,7 +55,7 @@ class ContactManagerTest {
     @Test
     public void testGetContact() throws NoSuchAlgorithmException {
         Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)), KeyString.IvToString(Crypto.generateIv()));
+                KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
 
         Contact retrievedContact = contactManager.getContact("User1");

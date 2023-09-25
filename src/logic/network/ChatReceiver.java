@@ -79,14 +79,14 @@ public class ChatReceiver {
                 // Decision and send signal
                 boolean decision = decisionHandler(senderUserName, senderIpAddress, "chat connection", frame);
                 if (decision) {
-                    out.println(Constant.acceptSignal);
+                    out.println(Constant.ACCEPTED);
                     isConnected = true;
                     sender = contactManager.getContact(senderId);
 
                     loadHistory();
                     initConnection();
                 } else {
-                    out.println(Constant.refuseSignal);
+                    out.println(Constant.REFUSED);
                 }
             }
 

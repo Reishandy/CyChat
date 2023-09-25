@@ -32,7 +32,7 @@ class AESTest {
     @Test
     void testInitializationWithString() {
         try {
-            String keyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+            String keyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
             String ivString = KeyString.IvToString(Crypto.generateIv());
 
             aes = new AES(keyString, ivString);

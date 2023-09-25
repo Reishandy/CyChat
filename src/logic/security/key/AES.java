@@ -14,7 +14,7 @@ public class AES {
     private final String keyString, ivString;
 
     public AES() throws NoSuchAlgorithmException {
-        key = Crypto.generateAESKey(Constant.keySizeAES128);
+        key = Crypto.generateAESKey(Constant.KEY_SIZE_AES_128);
         iv = Crypto.generateIv();
         keyString = KeyString.SecretKeyToString(key);
         ivString = KeyString.IvToString(iv);
