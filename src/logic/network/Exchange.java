@@ -113,12 +113,13 @@ public class Exchange {
     }
 
     static boolean decisionHandler(String senderUserName, String senderIpAddress, String messageInput) {
+        // TODO: change to swing dialog instead
         String message = "Incoming " + messageInput + " request from:\n" +
                 "Username: " + senderUserName + "\n" +
                 "IP Address: " + senderIpAddress + "\n\n" +
                 "Do you want to accept?";
 
-        int option = JOptionPane.showConfirmDialog(null, message, "Exchange Request", JOptionPane.YES_NO_OPTION);
+        int option = JOptionPane.showConfirmDialog(new JFrame(), message, "Exchange Request", JOptionPane.YES_NO_OPTION);
         return option == JOptionPane.YES_OPTION;
     }
 }

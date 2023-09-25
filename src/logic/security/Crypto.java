@@ -49,7 +49,7 @@ public class Crypto {
             NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
-        Cipher cipher = Cipher.getInstance(Constant.algorithmAESCBC);
+        Cipher cipher = Cipher.getInstance(Constant.algorithmAESCFB);
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
         byte[] cipherText = cipher.doFinal(plainText.getBytes());
         return Base64.getEncoder().encodeToString(cipherText);
@@ -59,7 +59,7 @@ public class Crypto {
             NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
 
-        Cipher cipher = Cipher.getInstance(Constant.algorithmAESCBC);
+        Cipher cipher = Cipher.getInstance(Constant.algorithmAESCFB);
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
         byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(cipherText));
         return new String(plainText);

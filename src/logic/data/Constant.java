@@ -5,7 +5,7 @@ import java.awt.*;
 public class Constant {
     public static String algorithmAES = "AES";
     public static String algorithmRSA = "RSA";
-    public static String algorithmAESCBC = "AES/CBC/PKCS5Padding";
+    public static String algorithmAESCFB = "AES/CFB/PKCS5Padding";
     public static String algorithmSHA512 = "SHA-512";
     public static String acceptSignal = "ACCEPTED";
     public static String refuseSignal = "REFUSED";

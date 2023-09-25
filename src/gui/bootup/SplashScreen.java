@@ -14,7 +14,7 @@ import java.util.Objects;
 public class SplashScreen {
     public static User user;
 
-    private static JFrame frame;
+    public static JFrame frame;
     private JPanel splashScreen;
 
     public static void main(String[] args) throws IOException, InterruptedException {
