@@ -4,6 +4,7 @@ import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.Peer;
 import logic.manager.ContactManager;
+import logic.manager.ManagersWrapper;
 import logic.manager.PeerManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,14 +55,17 @@ class BroadcastTest {
     void broadcastTest() throws InterruptedException {
         Runnable broadcastTask = () -> {
             try {
-                Broadcast.broadcast(id, userName);
+                while (!Thread.currentThread().isInterrupted()) {
+                    Broadcast.broadcast(id, userName);
+                }
             } catch (UnknownHostException e) {
                 fail("UnknownHostException should not be thrown");
             }
         };
         Thread broadcastThread = new Thread(broadcastTask);
         broadcastThread.start();
-        Thread.sleep(5005);
+
+        Thread.sleep(3000);
 
         String[] receivedMessage = listenTest();
         assertNotNull(receivedMessage);
@@ -83,7 +87,12 @@ class BroadcastTest {
     @Test
     void listenForBroadcastTest() throws InterruptedException {
         Runnable listenForBroadcastTask = () -> {
-            Broadcast.listenForBroadcast(id, contactManager, peerManager);
+            while (!Thread.currentThread().isInterrupted()) {
+                ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(id, contactManager, peerManager);
+                if (managersWrapper == null) continue;
+                contactManager = managersWrapper.getContactManager();
+                peerManager = managersWrapper.getPeerManager();
+            }
         };
         Thread listenThread = new Thread(listenForBroadcastTask);
         listenThread.start();
@@ -117,7 +126,7 @@ class BroadcastTest {
     }
 
     String[] listenTest() {
-        try (DatagramSocket listenSocket = new DatagramSocket(PortAssigner.assignRandomPort())) {
+        try (DatagramSocket listenSocket = new DatagramSocket(Constant.BROADCAST_PORT)) {
             byte[] buffer = new byte[Constant.BUFFER_LISTEN_FOR_BROADCAST];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             listenSocket.receive(packet);
@@ -129,14 +138,14 @@ class BroadcastTest {
     }
 
     void broadcastForListenTest(String id, String userName, String ipAddress) {
-        try (DatagramSocket broadcastSocket = new DatagramSocket();) {
+        try (DatagramSocket broadcastSocket = new DatagramSocket()) {
             String broadcastMessage = id + ":" + userName + ":" + ipAddress;
 
             DatagramPacket packet = new DatagramPacket(
                     broadcastMessage.getBytes(),
                     broadcastMessage.length(),
                     Inet4Address.getByName("255.255.255.255"),
-                    PortAssigner.assignRandomPort()
+                    Constant.BROADCAST_PORT
             );
             broadcastSocket.send(packet);
         } catch (IOException e) {

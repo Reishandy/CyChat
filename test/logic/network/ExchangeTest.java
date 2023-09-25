@@ -68,7 +68,7 @@ class ExchangeTest {
     @Test
     void handshakeTest() throws UnknownHostException, NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException {
         Runnable listenerTask = () -> {
-            Exchange.listener(receiverUser, receiverContactManager);
+            Exchange.listener(receiverUser, receiverContactManager, new JFrame());
         };
         Thread listenerThread = new Thread(listenerTask);
         listenerThread.start();

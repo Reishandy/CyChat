@@ -15,8 +15,12 @@ public class Constant {
     public static final int BIT_16 = 16;
     public static final int KEY_SIZE_RSA = 2048;
     public static final int MAIN_KEY_ITERATION = 1000;
-    public static final int MIN_PORT_NUMBER = 1024;
-    public static final int MAX_PORT_NUMBER = 49151;
+    public static final int BROADCAST_PORT = 2318;
+    public static final int EXCHANGE_PORT = 2319;
+    public static final int CHAT_PORT = 2320;
+    public static final int CHAT_HANDSHAKE_PORT = 2321;
+    public static final int BROADCAST_TIMES = 7;
+
     public static final int BUFFER_LISTEN_FOR_BROADCAST = 1024;
     public static final Font NAME_FONT = new Font("Barlow Black", Font.PLAIN, 24);
     public static final Font DETAILS_FONT = new Font("Barlow Medium", Font.PLAIN, 18);

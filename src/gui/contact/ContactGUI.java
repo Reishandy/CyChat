@@ -4,10 +4,12 @@ import gui.bootup.SplashScreen;
 import gui.chat.ChatGUI;
 import gui.dialog.RefusedDialog;
 import gui.dialog.RequestingDialog;
+import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.Peer;
 import logic.data.User;
 import logic.manager.ContactManager;
+import logic.manager.ManagersWrapper;
 import logic.manager.PeerManager;
 import logic.network.Broadcast;
 import logic.network.ChatReceiver;
@@ -20,6 +22,8 @@ import logic.storage.DataBase;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -35,7 +39,6 @@ public class ContactGUI {
     public static PeerManager peerManager;
     public static ChatSender chatSender;
     public static ChatReceiver chatReceiver;
-
     private final User user;
     private final Thread broadcastThread;
     private final Thread broadcastListenerThread;
@@ -73,24 +76,34 @@ public class ContactGUI {
                     "123", "cat", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                     KeyString.SecretKeyToString(Crypto.generateAESKey(128)), KeyString.IvToString(Crypto.generateIv())
             ));
-            peerManager.addPeer(new Peer("1234", "dog", Inet4Address.getLocalHost().getHostAddress()));
+            peerManager.addPeer(new Peer("1234", "dog", "192.168.0.0"));
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
 
-        // Broadcast own detail
+        // Broadcast own detail // TODO: test this
         broadcastThread = new Thread(() -> {
-            try {
-                Broadcast.broadcast(user.getId(), user.getUserName());
-            } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Broadcast.broadcast(user.getId(), user.getUserName());
+                    Thread.sleep(5000);
+                } catch (UnknownHostException | InterruptedException ignored) {}
             }
         });
         broadcastThread.start();
 
-        // Listen for other broadcast // TODO: Test this
+        // Listen for other broadcast // TODO: Test this and fix
         broadcastListenerThread = new Thread(() -> {
-           Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
+            while (!Thread.currentThread().isInterrupted()) {
+                System.out.println("aaa"); // TODO
+                ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
+                if (managersWrapper == null) continue;
+                contactManager = managersWrapper.getContactManager();
+                peerManager = managersWrapper.getPeerManager();
+                System.out.println(peerManager.getPeers()); // TODO
+                displayPeers();
+                displayContacts();
+            }
         });
         broadcastListenerThread.start();
 
@@ -112,8 +125,7 @@ public class ContactGUI {
         //      make a method on the chat receiver to check if connected
         //      using while true loop and on separate thread
 
-        // TODO: make this regally update, using thread?
-        // Display contact and peer
+        // Display initial contacts and peers
         displayContacts();
         displayPeers();
     }
@@ -133,19 +145,13 @@ public class ContactGUI {
 
                     new SwingWorker<Boolean, Void>() {
                         @Override
-                        protected Boolean doInBackground() throws Exception {
-                            // TODO: Exchange (placeholder)
-                            boolean accepted = false; // TODO: Replace this with the actual result of the connection attempt
+                        protected Boolean doInBackground() {
+                            boolean accepted;
                             try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException ex) {
+                                accepted = Exchange.knowEachOther(user, peer, contactManager, DataBase.getDataBasePath(user.getId()));
+                            } catch (IOException ex) {
                                 throw new RuntimeException(ex);
                             }
-//                            try {
-//                                accepted = Exchange.knowEachOther(user, peer, contactManager, DataBase.getDataBasePath(user.getId()));
-//                            } catch (IOException ex) {
-//                                throw new RuntimeException(ex);
-//                            }
                             return accepted;
                         }
 
@@ -155,14 +161,7 @@ public class ContactGUI {
                                 boolean accepted = get();
                                 dialog.close();
 
-                                if (accepted) {
-                                    // Stop the broadcast and exchange thread
-                                    broadcastThread.interrupt();
-                                    broadcastListenerThread.interrupt();
-                                    exchangeListenerThread.interrupt();
-
-                                    SplashScreen.changePanel(ChatGUI.getChatPanel());
-                                } else {
+                                if (!accepted) {
                                     new RefusedDialog(SplashScreen.frame).display();
                                 }
                             } catch (ExecutionException | InterruptedException ex) {
@@ -195,13 +194,8 @@ public class ContactGUI {
                     new SwingWorker<Boolean, Void>() {
                         @Override
                         protected Boolean doInBackground() throws Exception {
-                            // TODO: Connect (placeholder)
-                            boolean accepted = false; // TODO: Replace this with the actual result of the connection attempt
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException ex) {
-                                throw new RuntimeException(ex);
-                            }
+                            boolean accepted;
+                            accepted = chatSender.connect(contact);
                             return accepted;
                         }
 

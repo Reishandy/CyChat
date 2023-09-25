@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -27,7 +28,7 @@ import java.security.PublicKey;
 
 public class Exchange {
     public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager, String database) {
-        try (Socket socket = new Socket(peer.ip(), PortAssigner.assignRandomPort())) {
+        try (Socket socket = new Socket(peer.ip(), Constant.EXCHANGE_PORT)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -56,6 +57,8 @@ public class Exchange {
             Contact receiver = new Contact(peer.id(), peer.userName(), KeyString.PublicKeyToString(receiverPublicKey), keyAESString, ivString);
             contactManager.addContact(receiver);
             ContactDataBase.addIntoDatabase(receiver, user, database);
+        } catch (ConnectException ignored) {
+            return false;
         } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
                  IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
@@ -64,7 +67,7 @@ public class Exchange {
     }
 
     public static void listener(User user, ContactManager contactManager, JFrame frame) {
-        try (ServerSocket socket = new ServerSocket(PortAssigner.assignRandomPort())) {
+        try (ServerSocket socket = new ServerSocket(Constant.EXCHANGE_PORT)) {
             Socket clientSocket = null;
             BufferedReader in = null;
             PrintWriter out = null;
@@ -79,6 +82,8 @@ public class Exchange {
                 String senderId = userDetails[0];
                 String senderUserName = userDetails[1];
                 String senderIpAddress = userDetails[2];
+
+                if (senderId.equals(user.getId())) continue;
 
                 // Decision and send signal
                 boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange", frame);

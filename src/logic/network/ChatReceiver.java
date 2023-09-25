@@ -28,18 +28,18 @@ import java.util.ArrayList;
 import static logic.network.Exchange.decisionHandler;
 
 public class ChatReceiver {
-    String database;
-    boolean isConnected;
-    ArrayList<History> history;
-    User receiver;
-    Contact sender;
-    ContactManager contactManager;
-    ServerSocket receiverSocket;
-    Socket senderSocket;
-    BufferedReader in;
-    PrintWriter out;
-    Thread receiverHandshakeListenerThread;
-    JFrame frame;
+    private final String database;
+    private boolean isConnected;
+    private  ArrayList<History> history;
+    private final User receiver;
+    private  Contact sender;
+    private final ContactManager contactManager;
+    private   ServerSocket receiverSocket;
+    private   Socket senderSocket;
+    private  BufferedReader in;
+    private   PrintWriter out;
+    private final Thread receiverHandshakeListenerThread;
+    private final JFrame frame;
 
     public ChatReceiver(User user, ContactManager contactManager, String database, JFrame frame) {
         this.database = database;
@@ -58,7 +58,7 @@ public class ChatReceiver {
     }
 
     private void receiverHandshakeListener() {
-        try (ServerSocket serverSocket = new ServerSocket(Constant.chatHandshakePort)) {
+        try (ServerSocket serverSocket = new ServerSocket(Constant.CHAT_HANDSHAKE_PORT)) {
             Socket clientSocket = null;
             BufferedReader in = null;
             PrintWriter out = null;
@@ -104,7 +104,7 @@ public class ChatReceiver {
     }
 
     private void initConnection() throws IOException {
-        receiverSocket = new ServerSocket(Constant.chatPort);
+        receiverSocket = new ServerSocket(Constant.CHAT_PORT);
         senderSocket = receiverSocket.accept();
         in = new BufferedReader(new InputStreamReader(senderSocket.getInputStream()));
         out = new PrintWriter(senderSocket.getOutputStream(), true);

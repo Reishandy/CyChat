@@ -6,15 +6,16 @@ import logic.data.User;
 import logic.manager.ContactManager;
 import logic.network.ChatReceiver;
 import logic.network.ChatSender;
+import logic.security.Crypto;
+import logic.security.KeyString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.Crypto;
-import logic.security.KeyString;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.SocketException;
@@ -81,7 +82,7 @@ public class FullChatSequenceTest {
         receiverContactManager.addContact(senderContact);
 
         chatSender = new ChatSender(sender, database);
-        chatReceiver = new ChatReceiver(receiver, receiverContactManager, database);
+        chatReceiver = new ChatReceiver(receiver, receiverContactManager, database, new JFrame());
     }
 
     @Test

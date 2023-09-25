@@ -1,8 +1,6 @@
 package gui.bootup;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
-import gui.dialog.RequestDialog;
-import gui.dialog.RequestingDialog;
 import logic.data.Constant;
 import logic.data.User;
 import logic.storage.DataBase;

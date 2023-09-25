@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -25,13 +26,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class ChatSender {
-    String database;
-    ArrayList<History> history;
-    User sender;
-    Contact receiver;
-    Socket senderSocket;
-    BufferedReader in;
-    PrintWriter out;
+    private final String database;
+    private ArrayList<History> history;
+    private final User sender;
+    private Contact receiver;
+    private Socket senderSocket;
+    private BufferedReader in;
+    private PrintWriter out;
 
     public ChatSender(User user, String database) {
         this.database = database;
@@ -57,7 +58,7 @@ public class ChatSender {
     }
 
     private boolean senderHandshake() {
-        try (Socket socket = new Socket(receiver.getIp(), Constant.chatHandshakePort)) {
+        try (Socket socket = new Socket(receiver.getIp(), Constant.CHAT_HANDSHAKE_PORT)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -67,7 +68,7 @@ public class ChatSender {
 
             // Receive decision signal
             if (in.readLine().equals(Constant.REFUSED)) return false;
-        } catch (UnknownHostException e) {
+        } catch (ConnectException | UnknownHostException ignored) {
             return false;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -81,7 +82,7 @@ public class ChatSender {
     }
 
     private void initConnection() throws IOException {
-        senderSocket = new Socket(receiver.getIp(), Constant.chatPort);
+        senderSocket = new Socket(receiver.getIp(), Constant.CHAT_PORT);
         in = new BufferedReader(new InputStreamReader(senderSocket.getInputStream()));
         out = new PrintWriter(senderSocket.getOutputStream(), true);
     }
