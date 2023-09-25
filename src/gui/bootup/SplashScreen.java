@@ -1,6 +1,8 @@
 package gui.bootup;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import gui.dialog.RequestDialog;
+import gui.dialog.RequestingDialog;
 import logic.data.Constant;
 import logic.data.User;
 import logic.storage.DataBase;
@@ -13,7 +15,6 @@ import java.util.Objects;
 
 public class SplashScreen {
     public static User user;
-
     public static JFrame frame;
     private JPanel splashScreen;
 
@@ -30,25 +31,8 @@ public class SplashScreen {
             throw new RuntimeException(e);
         }
 
-
         // Set up theme
-        try {
-            UIManager.setLookAndFeel( new FlatIntelliJLaf() );
-            UIManager.put( "Button.arc", 999 );
-            UIManager.put( "Component.arc", 999 );
-            UIManager.put( "ProgressBar.arc", 999 );
-            UIManager.put( "TextComponent.arc", 999 );
-            UIManager.put( "Component.arrowType", "triangle" );
-            UIManager.put( "Component.focusWidth", 3 );
-            UIManager.put( "ScrollBar.trackArc", 999 );
-            UIManager.put( "ScrollBar.thumbArc", 999 );
-            UIManager.put( "ScrollBar.trackInsets", new Insets( 2, 4, 2, 4 ) );
-            UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
-            UIManager.put( "ScrollBar.track", Constant.SECONDARY_ACCENT_COLOR);
-        } catch (
-                UnsupportedLookAndFeelException e) {
-            throw new RuntimeException(e);
-        }
+        setUpTheme();
 
         // Set up application (JFrame)
         frame = new JFrame("CyChat");
@@ -74,13 +58,32 @@ public class SplashScreen {
         UserDataBase.initialization(DataBase.getDataBasePath());
         boolean tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
 
-
-        //Thread.sleep(5000);
+        Thread.sleep(5000);
 
         if (tableEmpty) {
             changePanel(Register.getRegister());
         } else {
             changePanel(Login.getLogin());
+        }
+    }
+
+    private static void setUpTheme() {
+        try {
+            UIManager.setLookAndFeel( new FlatIntelliJLaf() );
+            UIManager.put( "Button.arc", 999 );
+            UIManager.put( "Component.arc", 999 );
+            UIManager.put( "ProgressBar.arc", 999 );
+            UIManager.put( "TextComponent.arc", 999 );
+            UIManager.put( "Component.arrowType", "triangle" );
+            UIManager.put( "Component.focusWidth", 3 );
+            UIManager.put( "ScrollBar.trackArc", 999 );
+            UIManager.put( "ScrollBar.thumbArc", 999 );
+            UIManager.put( "ScrollBar.trackInsets", new Insets( 2, 4, 2, 4 ) );
+            UIManager.put( "ScrollBar.thumbInsets", new Insets( 2, 2, 2, 2 ) );
+            UIManager.put( "ScrollBar.track", Constant.SECONDARY_ACCENT_COLOR);
+        } catch (
+                UnsupportedLookAndFeelException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -1,5 +1,6 @@
 package logic.network;
 
+import gui.dialog.RequestDialog;
 import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.Peer;
@@ -62,7 +63,7 @@ public class Exchange {
         return true;
     }
 
-    public static void listener(User user, ContactManager contactManager) {
+    public static void listener(User user, ContactManager contactManager, JFrame frame) {
         try (ServerSocket socket = new ServerSocket(Constant.handshakePort)) {
             Socket clientSocket = null;
             BufferedReader in = null;
@@ -80,7 +81,7 @@ public class Exchange {
                 String senderIpAddress = userDetails[2];
 
                 // Decision and send signal
-                boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange");
+                boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange", frame);
                 Thread.sleep(500);
                 if (decision) {
                     out.println(Constant.acceptSignal);
@@ -112,14 +113,14 @@ public class Exchange {
         }
     }
 
-    static boolean decisionHandler(String senderUserName, String senderIpAddress, String messageInput) {
-        // TODO: change to swing dialog instead
+    static boolean decisionHandler(String senderUserName, String senderIpAddress, String messageInput, JFrame frame) {
         String message = "Incoming " + messageInput + " request from:\n" +
                 "Username: " + senderUserName + "\n" +
                 "IP Address: " + senderIpAddress + "\n\n" +
                 "Do you want to accept?";
 
-        int option = JOptionPane.showConfirmDialog(new JFrame(), message, "Exchange Request", JOptionPane.YES_NO_OPTION);
-        return option == JOptionPane.YES_OPTION;
+        RequestDialog dialog = new RequestDialog(frame, message);
+        dialog.display();
+        return dialog.getResult();
     }
 }

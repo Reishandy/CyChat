@@ -11,6 +11,7 @@ import logic.storage.HistoryDataBase;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -38,8 +39,9 @@ public class ChatReceiver {
     BufferedReader in;
     PrintWriter out;
     Thread receiverHandshakeListenerThread;
+    JFrame frame;
 
-    public ChatReceiver(User user, ContactManager contactManager, String database) {
+    public ChatReceiver(User user, ContactManager contactManager, String database, JFrame frame) {
         this.database = database;
         isConnected = false;
         history = new ArrayList<>();
@@ -50,6 +52,7 @@ public class ChatReceiver {
         senderSocket = null;
         in = null;
         out = null;
+        this.frame = frame;
         receiverHandshakeListenerThread = new Thread(this::receiverHandshakeListener);
         receiverHandshakeListenerThread.start();
     }
@@ -74,7 +77,7 @@ public class ChatReceiver {
                 String senderIpAddress = userDetails[2];
 
                 // Decision and send signal
-                boolean decision = decisionHandler(senderUserName, senderIpAddress, "chat connection");
+                boolean decision = decisionHandler(senderUserName, senderIpAddress, "chat connection", frame);
                 if (decision) {
                     out.println(Constant.acceptSignal);
                     isConnected = true;

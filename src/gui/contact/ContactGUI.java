@@ -2,6 +2,8 @@ package gui.contact;
 
 import gui.bootup.SplashScreen;
 import gui.chat.ChatGUI;
+import gui.dialog.RefusedDialog;
+import gui.dialog.RequestingDialog;
 import logic.data.Contact;
 import logic.data.Peer;
 import logic.data.User;
@@ -26,6 +28,7 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 public class ContactGUI {
     public static ContactManager contactManager;
@@ -46,6 +49,8 @@ public class ContactGUI {
     private JLabel topBarLogo;
     private JLabel contactTitle;
     private JLabel peerTitle;
+    private JLabel contactInstructionLabel;
+    private JLabel peerInstructionLabel;
 
     public ContactGUI() {
         // Set up some ui stuff
@@ -91,14 +96,14 @@ public class ContactGUI {
 
         // Listen for contact exchange request // TODO: test this
         exchangeListenerThread = new Thread(() -> {
-            Exchange.listener(user, contactManager);
+            Exchange.listener(user, contactManager, SplashScreen.frame);
         });
         exchangeListenerThread.start();
 
         // Chat boot-up // TODO: test this
         try {
             chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
-            chatReceiver = new ChatReceiver(user, contactManager, DataBase.getDataBasePath(user.getId()));
+            chatReceiver = new ChatReceiver(user, contactManager, DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -106,8 +111,6 @@ public class ContactGUI {
         // TODO: chatReceiver method... that will go to the chatGUI
         //      make a method on the chat receiver to check if connected
         //      using while true loop and on separate thread
-
-        // TODO: disable and re-enable broadcast and exchange thread
 
         // TODO: make this regally update, using thread?
         // Display contact and peer
@@ -122,36 +125,51 @@ public class ContactGUI {
         peerList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    boolean accepted = false;
                     int index = peerList.locationToIndex(e.getPoint());
                     Peer peer = peerList.getModel().getElementAt(index);
 
-                    // TODO: change to swing dialog
-                    JOptionPane optionPane = new JOptionPane("Requesting...", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
-                    JDialog dialog = optionPane.createDialog(SplashScreen.frame, "Requesting");
-                    dialog.setVisible(true);
+                    RequestingDialog dialog = new RequestingDialog(SplashScreen.frame);
+                    dialog.display();
 
-                    // Exchanging TODO: until the dialog is done
-//                    try {
-//                        accepted = Exchange.knowEachOther(user, peer, contactManager, DataBase.getDataBasePath(user.getId()));
-//                    } catch (IOException ex) {
-//                        throw new RuntimeException(ex);
-//                    }
-                    
+                    new SwingWorker<Boolean, Void>() {
+                        @Override
+                        protected Boolean doInBackground() throws Exception {
+                            // TODO: Exchange (placeholder)
+                            boolean accepted = false; // TODO: Replace this with the actual result of the connection attempt
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            }
+//                            try {
+//                                accepted = Exchange.knowEachOther(user, peer, contactManager, DataBase.getDataBasePath(user.getId()));
+//                            } catch (IOException ex) {
+//                                throw new RuntimeException(ex);
+//                            }
+                            return accepted;
+                        }
 
-                    // Result
-                    if (accepted) {
-                        // Stop the broadcast and exchange thread
-                        broadcastThread.interrupt();
-                        broadcastListenerThread.interrupt();
-                        exchangeListenerThread.interrupt();
+                        @Override
+                        protected void done() {
+                            try {
+                                boolean accepted = get();
+                                dialog.close();
 
-                        SplashScreen.changePanel(ChatGUI.getChatPanel());
-                    } else {
-                        // TODO: change to swing dialog
-                        JOptionPane.showMessageDialog(SplashScreen.frame, "Refused or timed out", "Refused",
-                                JOptionPane.WARNING_MESSAGE);
-                    }
+                                if (accepted) {
+                                    // Stop the broadcast and exchange thread
+                                    broadcastThread.interrupt();
+                                    broadcastListenerThread.interrupt();
+                                    exchangeListenerThread.interrupt();
+
+                                    SplashScreen.changePanel(ChatGUI.getChatPanel());
+                                } else {
+                                    new RefusedDialog(SplashScreen.frame).display();
+                                }
+                            } catch (ExecutionException | InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                    }.execute();
                 }
             }
         });
@@ -168,30 +186,46 @@ public class ContactGUI {
         contactList.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    boolean accepted = false;
                     int index = contactList.locationToIndex(e.getPoint());
                     Contact contact = contactList.getModel().getElementAt(index);
 
-                    // TODO: change to swing dialog
-                    JOptionPane optionPane = new JOptionPane("Requesting...", JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
-                    JDialog dialog = optionPane.createDialog(SplashScreen.frame, "Requesting");
-                    dialog.setVisible(true);
+                    RequestingDialog dialog = new RequestingDialog(SplashScreen.frame);
+                    dialog.display();
 
-                    // TODO: connect
+                    new SwingWorker<Boolean, Void>() {
+                        @Override
+                        protected Boolean doInBackground() throws Exception {
+                            // TODO: Connect (placeholder)
+                            boolean accepted = false; // TODO: Replace this with the actual result of the connection attempt
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                            return accepted;
+                        }
 
+                        @Override
+                        protected void done() {
+                            try {
+                                boolean accepted = get();
+                                dialog.close();
 
-                    if (accepted) {
-                        // Stop the broadcast and exchange thread
-                        broadcastThread.interrupt();
-                        broadcastListenerThread.interrupt();
-                        exchangeListenerThread.interrupt();
+                                if (accepted) {
+                                    // Stop the broadcast and exchange thread
+                                    broadcastThread.interrupt();
+                                    broadcastListenerThread.interrupt();
+                                    exchangeListenerThread.interrupt();
 
-                        SplashScreen.changePanel(ChatGUI.getChatPanel());
-                    } else {
-                        // TODO: change to swing dialog
-                        JOptionPane.showMessageDialog(SplashScreen.frame, "Refused or timed out", "Refused",
-                                JOptionPane.WARNING_MESSAGE);
-                    }
+                                    SplashScreen.changePanel(ChatGUI.getChatPanel());
+                                } else {
+                                    new RefusedDialog(SplashScreen.frame).display();
+                                }
+                            } catch (ExecutionException | InterruptedException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                    }.execute();
                 }
             }
         });
