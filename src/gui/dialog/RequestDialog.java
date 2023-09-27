@@ -1,7 +1,5 @@
 package gui.dialog;
 
-import gui.bootup.SplashScreen;
-
 import javax.swing.*;
 
 public class RequestDialog extends JDialog {

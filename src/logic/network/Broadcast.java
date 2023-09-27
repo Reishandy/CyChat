@@ -7,17 +7,20 @@ import logic.manager.ManagersWrapper;
 import logic.manager.PeerManager;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 
 public class Broadcast {
     public static void broadcast(String id, String userName) throws UnknownHostException {
         try (DatagramSocket broadcastSocket = new DatagramSocket()) {
-            String broadcastMessage = id + ":" + userName + ":" + Inet4Address.getLocalHost().getHostAddress();
+            String broadcastMessage = id + ":" + userName + ":" + Address.getLocalIp();
 
             DatagramPacket packet = new DatagramPacket(
                     broadcastMessage.getBytes(),
                     broadcastMessage.length(),
-                    Inet4Address.getByName("255.255.255.255"),
+                    Inet4Address.getByName(Address.getBroadcastAddress()),
                     Constant.BROADCAST_PORT
             );
             broadcastSocket.send(packet);
@@ -40,7 +43,10 @@ public class Broadcast {
             String ipAddress = receivedMessage[2];
 
             // Ignore own broadcast
-            if (id.equals(ownId) && ipAddress.equals(Inet4Address.getLocalHost().getHostAddress())) return null;
+            if (id.equals(ownId) && ipAddress.equals(Address.getLocalIp())) return null;
+
+            // Ignore existing peer
+            if (peerManager.checkPeerExist(id)) return null;
 
             if (contactManager.checkContactExist(id)) {
                 contactManager.updateIpAddress(id, ipAddress);

@@ -2,10 +2,10 @@ package logic.manager;
 
 import logic.data.Constant;
 import logic.data.Contact;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
 

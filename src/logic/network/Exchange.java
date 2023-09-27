@@ -33,7 +33,7 @@ public class Exchange {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send user details to display who is trying to connect
-            String userDetails = user.getId() + ":" + user.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
+            String userDetails = user.getId() + ":" + user.getUserName() + ":" + Address.getLocalIp();
             out.println(userDetails);
 
             // Receive decision signal

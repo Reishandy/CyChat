@@ -56,7 +56,7 @@ public class SplashScreen {
         UserDataBase.initialization(DataBase.getDataBasePath());
         boolean tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
 
-        Thread.sleep(5000);
+        //Thread.sleep(5000);
 
         if (tableEmpty) {
             changePanel(Register.getRegister());

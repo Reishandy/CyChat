@@ -3,11 +3,11 @@ package logic.storage;
 import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.User;
+import logic.security.Crypto;
+import logic.security.KeyString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.Crypto;
-import logic.security.KeyString;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;

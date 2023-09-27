@@ -4,32 +4,23 @@ import gui.bootup.SplashScreen;
 import gui.chat.ChatGUI;
 import gui.dialog.RefusedDialog;
 import gui.dialog.RequestingDialog;
-import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.Peer;
 import logic.data.User;
 import logic.manager.ContactManager;
 import logic.manager.ManagersWrapper;
 import logic.manager.PeerManager;
-import logic.network.Broadcast;
-import logic.network.ChatReceiver;
-import logic.network.ChatSender;
-import logic.network.Exchange;
-import logic.security.Crypto;
-import logic.security.KeyString;
+import logic.network.*;
 import logic.storage.ContactDataBase;
 import logic.storage.DataBase;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.net.Inet4Address;
+import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
@@ -40,10 +31,9 @@ public class ContactGUI {
     public static ChatSender chatSender;
     public static ChatReceiver chatReceiver;
     private final User user;
-    private final Thread broadcastThread;
-    private final Thread broadcastListenerThread;
-    private final Thread exchangeListenerThread;
-
+    private Thread broadcastThread;
+    private Thread broadcastListenerThread;
+    private Thread exchangeListenerThread;
 
     private JPanel contactPanel;
     private JPanel topBarPanel;
@@ -54,6 +44,7 @@ public class ContactGUI {
     private JLabel peerTitle;
     private JLabel contactInstructionLabel;
     private JLabel peerInstructionLabel;
+    private JLabel debug;
 
     public ContactGUI() {
         // Set up some ui stuff
@@ -66,22 +57,30 @@ public class ContactGUI {
 
         // TODO: add some loading animation
 
+        // Init the logic
+        init();
+
+        // Display initial contacts and peers
+        displayContacts();
+        displayPeers();
+
+        try {
+            debug.setText(Address.getLocalIp() + " @ " + Address.getInterface());
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void init() {
         // Load contact and set up peer
         try {
             initContactManager();
             peerManager = new PeerManager();
-
-            // TODO: debug
-            contactManager.addContact(new Contact(
-                    "123", "cat", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                    KeyString.SecretKeyToString(Crypto.generateAESKey(128)), KeyString.IvToString(Crypto.generateIv())
-            ));
-            peerManager.addPeer(new Peer("1234", "dog", "192.168.0.0"));
-        } catch (IOException | NoSuchAlgorithmException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        // Broadcast own detail // TODO: test this
+        // Broadcast own detail
         broadcastThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
@@ -92,22 +91,21 @@ public class ContactGUI {
         });
         broadcastThread.start();
 
-        // Listen for other broadcast // TODO: Test this and fix
+        // Listen for other broadcast
         broadcastListenerThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
-                System.out.println("aaa"); // TODO
                 ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
+
                 if (managersWrapper == null) continue;
                 contactManager = managersWrapper.getContactManager();
                 peerManager = managersWrapper.getPeerManager();
-                System.out.println(peerManager.getPeers()); // TODO
-                displayPeers();
-                displayContacts();
+
+                updateList();
             }
         });
         broadcastListenerThread.start();
 
-        // Listen for contact exchange request // TODO: test this
+        // Listen for contact exchange request
         exchangeListenerThread = new Thread(() -> {
             Exchange.listener(user, contactManager, SplashScreen.frame);
         });
@@ -125,9 +123,17 @@ public class ContactGUI {
         //      make a method on the chat receiver to check if connected
         //      using while true loop and on separate thread
 
-        // Display initial contacts and peers
-        displayContacts();
+    }
+
+    private void updateList() {
+        peerListPanel.removeAll();
+        contactListPanel.removeAll();
         displayPeers();
+        displayContacts();
+        peerListPanel.revalidate();
+        contactListPanel.revalidate();
+        peerListPanel.repaint();
+        contactListPanel.repaint();
     }
 
     private void displayPeers() {
@@ -161,7 +167,10 @@ public class ContactGUI {
                                 boolean accepted = get();
                                 dialog.close();
 
-                                if (!accepted) {
+                                if (accepted) {
+                                    peerManager.removePeer(peer);
+                                    updateList();
+                                } else {
                                     new RefusedDialog(SplashScreen.frame).display();
                                 }
                             } catch (ExecutionException | InterruptedException ex) {

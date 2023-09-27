@@ -4,6 +4,7 @@ import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.User;
 import logic.manager.ContactManager;
+import logic.network.Address;
 import logic.network.ChatReceiver;
 import logic.network.ChatSender;
 import logic.security.Crypto;
@@ -57,7 +58,7 @@ public class FullChatSequenceTest {
     }
 
     @BeforeEach
-    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException {
+    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException, SocketException {
         database = "jdbc:sqlite:test.db";
         senderName = "Cat";
         receiverName = "Dog";
@@ -74,8 +75,8 @@ public class FullChatSequenceTest {
         receiver = new User(receiverName, receiverPassword);
         senderContact = new Contact(sender.getId(), senderName, KeyString.PublicKeyToString(sender.getPublicKey()), aesKeyString, ivString);
         receiverContact = new Contact(receiver.getId(), receiverName, KeyString.PublicKeyToString(receiver.getPublicKey()), aesKeyString, ivString);
-        senderContact.setIp(Inet4Address.getLocalHost().getHostAddress());
-        receiverContact.setIp(Inet4Address.getLocalHost().getHostAddress());
+        senderContact.setIp(Address.getLocalIp());
+        receiverContact.setIp(Address.getLocalIp());
 
 
         receiverContactManager = new ContactManager();

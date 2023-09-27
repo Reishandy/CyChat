@@ -40,7 +40,6 @@ public class RSA {
     }
 
     public PrivateKey getPrivateKey() {
-        if (privateKey == null) return null;
         return privateKey;
     }
 
@@ -49,7 +48,6 @@ public class RSA {
     }
 
     public String getPrivateKeyString() {
-        if (privateKeyString == null) return null;
         return privateKeyString;
     }
 }

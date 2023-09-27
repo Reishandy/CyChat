@@ -1,8 +1,6 @@
 package gui.dialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class RefusedDialog extends JDialog {
     private JPanel contentPane;

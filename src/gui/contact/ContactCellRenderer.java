@@ -47,7 +47,7 @@ class ContactCellRenderer extends JPanel implements ListCellRenderer<Contact> {
     }
 
     public Component getListCellRendererComponent(JList list, Contact contact, int index, boolean isSelected, boolean cellHasFocus) {
-        idLabel.setText(contact.getId());
+        idLabel.setText(contact.getId().substring(0, 6));
         usernameLabel.setText(contact.getUserName());
         ipLabel.setText(contact.getIp());
 

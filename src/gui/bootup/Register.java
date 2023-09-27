@@ -1,6 +1,5 @@
 package gui.bootup;
 
-import logic.data.Constant;
 import logic.data.User;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;

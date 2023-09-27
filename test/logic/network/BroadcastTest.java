@@ -6,16 +6,13 @@ import logic.data.Peer;
 import logic.manager.ContactManager;
 import logic.manager.ManagersWrapper;
 import logic.manager.PeerManager;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
@@ -36,7 +33,8 @@ class BroadcastTest {
             id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             dogId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             userName = "Cat";
-            localHostIpAddress = Inet4Address.getLocalHost().getHostAddress();
+            localHostIpAddress = Address.getLocalIp();
+            assert localHostIpAddress != null;
             testIpAddress = incrementIPAddress(localHostIpAddress, 10);
 
             contact = new Contact(dogId, "Dog", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
@@ -46,7 +44,7 @@ class BroadcastTest {
 
             newId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             newUserName = "Dog_haters_123_xXx";
-        } catch (NoSuchAlgorithmException | UnknownHostException e) {
+        } catch (NoSuchAlgorithmException | SocketException e) {
             fail("No errors should be thrown");
         }
     }
@@ -144,7 +142,7 @@ class BroadcastTest {
             DatagramPacket packet = new DatagramPacket(
                     broadcastMessage.getBytes(),
                     broadcastMessage.length(),
-                    Inet4Address.getByName("255.255.255.255"),
+                    Inet4Address.getByName(Address.getBroadcastAddress()),
                     Constant.BROADCAST_PORT
             );
             broadcastSocket.send(packet);

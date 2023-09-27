@@ -63,7 +63,7 @@ public class ChatSender {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send user details to display who is trying to connect
-            String userDetails = sender.getId() + ":" + sender.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
+            String userDetails = sender.getId() + ":" + sender.getUserName() + ":" + Address.getLocalIp();
             out.println(userDetails);
 
             // Receive decision signal

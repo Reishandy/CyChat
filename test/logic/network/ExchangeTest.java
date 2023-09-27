@@ -14,6 +14,7 @@ import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,8 +31,8 @@ class ExchangeTest {
     ContactManager senderContactManager, receiverContactManager;
 
     @BeforeEach
-    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException {
-        testIpAddress = Inet4Address.getLocalHost().getHostAddress();
+    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException, SocketException {
+        testIpAddress = Address.getLocalIp();
 
         senderUserName = "Cat";
         senderPassword = "I like cats";
@@ -66,7 +67,7 @@ class ExchangeTest {
     }
 
     @Test
-    void handshakeTest() throws UnknownHostException, NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException {
+    void handshakeTest() throws UnknownHostException, NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException, SocketException {
         Runnable listenerTask = () -> {
             Exchange.listener(receiverUser, receiverContactManager, new JFrame());
         };

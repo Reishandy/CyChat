@@ -1,8 +1,6 @@
 package gui.dialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class RequestingDialog extends JDialog {
     private JPanel contentPane;
@@ -16,7 +14,7 @@ public class RequestingDialog extends JDialog {
         setContentPane(contentPane);
         setModal(false);
 
-        // Displaying the request animation TODO
+        // Displaying the request animation
         startAnimation();
 
         // prevent closing by pressing the cross

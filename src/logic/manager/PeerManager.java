@@ -32,4 +32,8 @@ public class PeerManager {
     public ArrayList<Peer> getPeers() {
         return peers;
     }
+
+    public void removePeer(Peer peer) {
+        peers.remove(peer);
+    }
 }

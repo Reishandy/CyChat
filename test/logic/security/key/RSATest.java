@@ -1,14 +1,14 @@
 package logic.security.key;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.Test;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RSATest {
     private RSA rsa;

@@ -1,14 +1,12 @@
 package logic;
 
 import logic.data.User;
+import logic.security.Hash;
+import logic.storage.UserDataBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.Hash;
-import logic.storage.DataBase;
-import logic.storage.UserDataBase;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
