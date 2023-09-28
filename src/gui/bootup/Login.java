@@ -60,11 +60,13 @@ public class Login {
                         SplashScreen.changePanel(ContactGUI.getContact());
                     } else {
                         userNameWarning.setText("User not found");
-                        passwordWarning.setText("User not found");
                     }
+                } catch (BadPaddingException ignored) {
+                    System.out.println("aaa");
+                    passwordWarning.setText("Wrong password");
                 } catch (IOException | SQLException | InvalidAlgorithmParameterException | NoSuchPaddingException |
                          IllegalBlockSizeException | NoSuchAlgorithmException | InvalidKeySpecException |
-                         BadPaddingException | InvalidKeyException ex) {
+                         InvalidKeyException ex) {
                     Error dialog = new Error(SplashScreen.frame, ex);
                     dialog.display();
                 }

@@ -5,6 +5,7 @@ import logic.security.KeyString;
 import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,7 +38,7 @@ class ContactTest {
             assertEquals(contact.getIp(), "192.168.0.0");
 
             ipTest();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             fail("NoSuchAlgorithmException should not be thrown");
         }
     }

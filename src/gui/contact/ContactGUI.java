@@ -6,10 +6,10 @@ import gui.dialog.Error;
 import gui.dialog.RefusedDialog;
 import gui.dialog.RequestingDialog;
 import logic.data.Contact;
+import logic.data.ManagersWrapper;
 import logic.data.Peer;
 import logic.data.User;
 import logic.manager.ContactManager;
-import logic.data.ManagersWrapper;
 import logic.manager.PeerManager;
 import logic.network.*;
 import logic.storage.ContactDataBase;
@@ -24,7 +24,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -32,7 +31,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Vector;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 
 public class ContactGUI {
     public static ContactManager contactManager;
@@ -40,7 +39,7 @@ public class ContactGUI {
     public static ChatSender chatSender;
     public static ChatReceiver chatReceiver;
     private final User user;
-    private Thread broadcastThread;
+    ScheduledExecutorService broadcastTask;
     private Thread broadcastListenerThread;
     private Thread exchangeListenerThread;
     private Thread chatListenerThread;
@@ -97,17 +96,15 @@ public class ContactGUI {
         }
 
         // Broadcast own detail
-        broadcastThread = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    Broadcast.broadcast(user.getId(), user.getUserName());
-                    Thread.sleep(5000);
-                } catch (InterruptedException | IOException ex) {
-                    Error dialog = new Error(SplashScreen.frame, ex);
-                    dialog.display();
-                }
+        broadcastTask = Executors.newSingleThreadScheduledExecutor();
+        broadcastTask.scheduleAtFixedRate(() -> {
+            try {
+                Broadcast.broadcast(user.getId(), user.getUserName());
+            } catch (IOException ex) {
+                Error dialog = new Error(SplashScreen.frame, ex);
+                dialog.display();
             }
-        });
+        }, 0, 5, TimeUnit.SECONDS);
 
         // Listen for other broadcast
         broadcastListenerThread = new Thread(() -> {
@@ -125,14 +122,13 @@ public class ContactGUI {
                 Error dialog = new Error(SplashScreen.frame, e);
                 dialog.display();
             }
-
         });
 
         // Listen for contact exchange request
         exchangeListenerThread = new Thread(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    ContactManager gotContactManager = Exchange.listener(user, contactManager, SplashScreen.frame);
+                    ContactManager gotContactManager = Exchange.listener(user, contactManager, DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
 
                     if (gotContactManager == null) continue;
                     contactManager = gotContactManager;
@@ -141,7 +137,8 @@ public class ContactGUI {
                     updateList();
                 }
             } catch (NoSuchPaddingException | IllegalBlockSizeException | IOException | NoSuchAlgorithmException |
-                     BadPaddingException | InvalidKeyException | InterruptedException | InvalidKeySpecException ex) {
+                     BadPaddingException | InvalidKeyException | InterruptedException | InvalidKeySpecException |
+                     InvalidAlgorithmParameterException | SQLException ex) {
                 Error dialog = new Error(SplashScreen.frame, ex);
                 dialog.display();
             }
@@ -150,10 +147,10 @@ public class ContactGUI {
         // Chat receiver listener if accepted change to chat interface
         // TODO Fix this and maybe use some manual CLI sender?
         chatListenerThread = new Thread(() -> {
-            while (true) {
-                if (chatReceiver.getIsConnected()) {
+            while (!Thread.currentThread().isInterrupted()) {
+                if (chatReceiver.receiverHandshakeListener()) {
                     // Stop the broadcast and exchange thread
-                    broadcastThread.interrupt();
+                    broadcastTask.shutdown();
                     broadcastListenerThread.interrupt();
                     exchangeListenerThread.interrupt();
                     chatListenerThread.interrupt();
@@ -164,7 +161,6 @@ public class ContactGUI {
         });
 
         // Start the treads
-        broadcastThread.start();
         broadcastListenerThread.start();
         exchangeListenerThread.start();
         chatListenerThread.start();
@@ -265,7 +261,7 @@ public class ContactGUI {
 
                                 if (accepted) {
                                     // Stop the broadcast and exchange thread
-                                    broadcastThread.interrupt();
+                                    broadcastTask.shutdown();
                                     broadcastListenerThread.interrupt();
                                     exchangeListenerThread.interrupt();
                                     chatListenerThread.interrupt();

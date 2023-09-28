@@ -18,7 +18,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
@@ -42,6 +41,7 @@ public class FullChatSequenceTest {
     ContactManager receiverContactManager;
     ChatSender chatSender;
     ChatReceiver chatReceiver;
+    Thread chatListenerThread;
 
     @AfterEach
     void clear() throws SQLException {
@@ -84,6 +84,11 @@ public class FullChatSequenceTest {
 
         chatSender = new ChatSender(sender, database);
         chatReceiver = new ChatReceiver(receiver, receiverContactManager, database, new JFrame());
+
+        chatListenerThread = new Thread(() -> {
+            chatReceiver.receiverHandshakeListener();
+        });
+        chatListenerThread.start();
     }
 
     @Test
@@ -170,11 +175,10 @@ public class FullChatSequenceTest {
 
             revieveMessageThread.interrupt();
             chatReceiver.closeSession();
-            chatReceiver.closeListener();
 
         } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
                  NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | InterruptedException |
-                 IOException e) {
+                 IOException | SQLException e) {
             fail("No errors should be thrown");
         }
     }

@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ConnectException;
-import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
@@ -66,7 +65,7 @@ public class Exchange {
         return true;
     }
 
-    public static ContactManager listener(User user, ContactManager contactManager, JFrame frame) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InterruptedException, InvalidKeySpecException {
+    public static ContactManager listener(User user, ContactManager contactManager, String database, JFrame frame) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InterruptedException, InvalidKeySpecException, InvalidAlgorithmParameterException, SQLException {
         try (ServerSocket socket = new ServerSocket(Constant.EXCHANGE_PORT)) {
             Socket clientSocket = socket.accept();
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -102,6 +101,7 @@ public class Exchange {
             // Add sender to contact
             Contact sender = new Contact(senderId, senderUserName, senderIpAddress, senderPublicKey, keyAESString, ivString);
             contactManager.addContact(sender);
+            ContactDataBase.addIntoDatabase(sender, user, database);
             return contactManager;
         } catch (IOException e) {
             throw new IOException(e);

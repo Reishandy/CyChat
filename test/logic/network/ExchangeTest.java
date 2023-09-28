@@ -10,17 +10,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,7 +35,7 @@ class ExchangeTest {
     ContactManager senderContactManager, receiverContactManager;
 
     @BeforeEach
-    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException, SocketException {
+    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, SocketException, SQLException {
         testIpAddress = Address.getLocalIp();
 
         senderUserName = "Cat";
@@ -47,7 +51,6 @@ class ExchangeTest {
 
         database = "jdbc:sqlite:./db/" + senderUser.getId() + ".db";
         ContactDataBase.initialization(database);
-        // TODO: automate decision
     }
 
     @AfterEach
@@ -58,19 +61,25 @@ class ExchangeTest {
                 .forEach(File::delete);
     }
 
-    void refused() {
+    void refused() throws InvalidAlgorithmParameterException, SQLException, NoSuchPaddingException, IllegalBlockSizeException, IOException, NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, InvalidKeyException, InterruptedException {
         boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager, database);
 
         assertFalse(status);
-        assertEquals(0, senderContactManager.getContacts().size());
-        assertEquals(0, receiverContactManager.getContacts().size());
+        assertEquals(1, senderContactManager.getContacts().size());
+        assertEquals(1, receiverContactManager.getContacts().size());
     }
 
     @Test
-    void handshakeTest() throws UnknownHostException, NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException, SocketException {
+    void handshakeTest() throws NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException, IOException, SQLException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         Runnable listenerTask = () -> {
             while (!Thread.currentThread().isInterrupted()) {
-                receiverContactManager = Exchange.listener(receiverUser, receiverContactManager, new JFrame());
+                try {
+                    receiverContactManager = Exchange.listener(receiverUser, receiverContactManager,  database, new JFrame());
+                } catch (IOException | NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+                         BadPaddingException | InvalidKeyException | InterruptedException | InvalidKeySpecException |
+                         InvalidAlgorithmParameterException | SQLException e) {
+                    fail("Mo error should be thrown");
+                }
             }
         };
         Thread listenerThread = new Thread(listenerTask);
@@ -97,7 +106,6 @@ class ExchangeTest {
         assertEquals(receiverUserName, receiverGetFromSender.getUserName());
         assertEquals(KeyString.PublicKeyToString(receiverUser.getPublicKey()), receiverGetFromSender.getPublicKeyString());
 
-        setUp();
         refused();
 
         listenerThread.interrupt();

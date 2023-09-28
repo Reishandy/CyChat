@@ -19,18 +19,6 @@ public class SplashScreen {
     private JPanel splashScreen;
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        // Load fonts
-        try {
-            Font barlowExtraBold = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(SplashScreen.class.getResourceAsStream("/Barlow-ExtraBold.ttf")));
-            Font barlowMedium = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(SplashScreen.class.getResourceAsStream("/Barlow-Medium.ttf")));
-
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            ge.registerFont(barlowExtraBold);
-            ge.registerFont(barlowMedium);
-        } catch (FontFormatException | IOException e) {
-            throw new RuntimeException(e);
-        }
-
         // Set up theme
         setUpTheme();
 
@@ -42,6 +30,9 @@ public class SplashScreen {
         frame.setResizable(false);
         frame.pack();
         frame.setVisible(true);
+
+        // Load fonts
+        loadFonts();
 
         // Set up logo
         ImageIcon logoIconGif = new ImageIcon(Objects.requireNonNull(SplashScreen.class.getResource("/CyChat.gif")));
@@ -73,6 +64,20 @@ public class SplashScreen {
         }
     }
 
+    private static void loadFonts() {
+        try {
+            Font barlowExtraBold = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(SplashScreen.class.getResourceAsStream("/Barlow-ExtraBold.ttf")));
+            Font barlowMedium = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(SplashScreen.class.getResourceAsStream("/Barlow-Medium.ttf")));
+
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(barlowExtraBold);
+            ge.registerFont(barlowMedium);
+        } catch (FontFormatException | IOException e) {
+            Error dialog = new Error(frame, e);
+            dialog.display();
+        }
+    }
+
     private static void setUpTheme() {
         try {
             UIManager.setLookAndFeel( new FlatIntelliJLaf() );
@@ -89,7 +94,8 @@ public class SplashScreen {
             UIManager.put( "ScrollBar.track", Constant.SECONDARY_ACCENT_COLOR);
         } catch (
                 UnsupportedLookAndFeelException e) {
-            throw new RuntimeException(e);
+            Error dialog = new Error(frame, e);
+            dialog.display();
         }
     }
 

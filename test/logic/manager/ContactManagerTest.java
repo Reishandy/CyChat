@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +21,7 @@ class ContactManagerTest {
     }
 
     @Test
-    public void testCheckContactExist() throws NoSuchAlgorithmException {
+    public void testCheckContactExist() throws NoSuchAlgorithmException, InvalidKeySpecException {
         Contact contact1 = new Contact("User1", "User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
@@ -30,7 +31,7 @@ class ContactManagerTest {
     }
 
     @Test
-    public void testAddContact() throws NoSuchAlgorithmException {
+    public void testAddContact() throws NoSuchAlgorithmException, InvalidKeySpecException {
         Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
@@ -40,7 +41,7 @@ class ContactManagerTest {
     }
 
     @Test
-    public void testUpdateIpAddress() throws NoSuchAlgorithmException {
+    public void testUpdateIpAddress() throws NoSuchAlgorithmException, InvalidKeySpecException {
         Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);
@@ -53,7 +54,7 @@ class ContactManagerTest {
     }
 
     @Test
-    public void testGetContact() throws NoSuchAlgorithmException {
+    public void testGetContact() throws NoSuchAlgorithmException, InvalidKeySpecException {
         Contact contact1 = new Contact("User1","User1", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
                 KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)), KeyString.IvToString(Crypto.generateIv()));
         contactManager.addContact(contact1);

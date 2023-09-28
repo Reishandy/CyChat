@@ -34,7 +34,7 @@ class HistoryDataBaseTest {
     }
 
     @Test
-    void testHistoryDataBase() {
+    void testHistoryDataBase() throws SQLException {
         String sender = "Dog";
         String message1 = "I like cats";
         String message2 = "I hate cats";

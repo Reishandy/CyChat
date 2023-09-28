@@ -7,6 +7,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
@@ -33,7 +38,7 @@ public class FullLoginSequenceTest {
     }
 
     @Test
-    void startSequence() {
+    void startSequence() throws SQLException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
         UserDataBase.initialization(database);
 
         if (UserDataBase.tableIsEmpty(database)) {
@@ -60,12 +65,14 @@ public class FullLoginSequenceTest {
 
             UserDataBase.addIntoDatabase(userA, database);
             login();
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidAlgorithmParameterException |
+                 NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
+                 SQLException e) {
             fail("No errors should be thrown");
         }
     }
 
-    private void login() {
+    private void login() throws InvalidAlgorithmParameterException, SQLException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
         user = UserDataBase.getUserFromDatabase(userName, password, database);
 
         assertNotNull(user.getId());

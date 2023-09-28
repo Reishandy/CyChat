@@ -111,8 +111,12 @@ public class UserDataBase {
 
                 // This is not a good way to do it but i dont know what else
                 // Straight checking which user is correct when getting the database
-                if (userName.equals(userNameInput) && Hash.checkPassword(passwordInput, userNameInput, hashedPassword)) {
-                    user = new User(userId, userName, passwordInput, hashedPassword, saltString, ivString, encryptedPublicKeyString, encryptedPrivateKeyString);
+                if (userName.equals(userNameInput)) {
+                    if (Hash.checkPassword(passwordInput, userNameInput, hashedPassword)) {
+                        user = new User(userId, userName, passwordInput, hashedPassword, saltString, ivString, encryptedPublicKeyString, encryptedPrivateKeyString);
+                    } else {
+                        throw new BadPaddingException();
+                    }
                 }
             }
             return user;

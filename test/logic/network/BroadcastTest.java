@@ -2,9 +2,9 @@ package logic.network;
 
 import logic.data.Constant;
 import logic.data.Contact;
+import logic.data.ManagersWrapper;
 import logic.data.Peer;
 import logic.manager.ContactManager;
-import logic.data.ManagersWrapper;
 import logic.manager.PeerManager;
 import logic.security.Crypto;
 import logic.security.KeyString;
@@ -12,8 +12,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +48,7 @@ class BroadcastTest {
 
             newId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             newUserName = "Dog_haters_123_xXx";
-        } catch (NoSuchAlgorithmException | SocketException e) {
+        } catch (NoSuchAlgorithmException | SocketException | InvalidKeySpecException e) {
             fail("No errors should be thrown");
         }
     }
@@ -56,7 +60,7 @@ class BroadcastTest {
                 while (!Thread.currentThread().isInterrupted()) {
                     Broadcast.broadcast(id, userName);
                 }
-            } catch (UnknownHostException e) {
+            } catch (IOException e) {
                 fail("UnknownHostException should not be thrown");
             }
         };
@@ -86,7 +90,12 @@ class BroadcastTest {
     void listenForBroadcastTest() throws InterruptedException {
         Runnable listenForBroadcastTask = () -> {
             while (!Thread.currentThread().isInterrupted()) {
-                ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(id, contactManager, peerManager);
+                ManagersWrapper managersWrapper = null;
+                try {
+                    managersWrapper = Broadcast.listenForBroadcast(id, contactManager, peerManager);
+                } catch (IOException e) {
+                    fail("Mo error should be thrown");
+                }
                 if (managersWrapper == null) continue;
                 contactManager = managersWrapper.contactManager();
                 peerManager = managersWrapper.peerManager();
