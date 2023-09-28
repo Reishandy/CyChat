@@ -132,7 +132,7 @@ public class FullChatSequenceTest {
             chatSender.closeSession();
 
         } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                 NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+                 NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
             fail("No errors should be thrown");
         }
 

@@ -2,18 +2,22 @@ package gui.contact;
 
 import gui.bootup.SplashScreen;
 import gui.chat.ChatGUI;
+import gui.dialog.Error;
 import gui.dialog.RefusedDialog;
 import gui.dialog.RequestingDialog;
 import logic.data.Contact;
 import logic.data.Peer;
 import logic.data.User;
 import logic.manager.ContactManager;
-import logic.manager.ManagersWrapper;
+import logic.data.ManagersWrapper;
 import logic.manager.PeerManager;
 import logic.network.*;
 import logic.storage.ContactDataBase;
 import logic.storage.DataBase;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -21,6 +25,11 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
@@ -34,6 +43,7 @@ public class ContactGUI {
     private Thread broadcastThread;
     private Thread broadcastListenerThread;
     private Thread exchangeListenerThread;
+    private Thread chatListenerThread;
 
     private JPanel contactPanel;
     private JPanel topBarPanel;
@@ -67,17 +77,23 @@ public class ContactGUI {
         try {
             debug.setText(Address.getLocalIp() + " @ " + Address.getInterface());
         } catch (SocketException e) {
-            throw new RuntimeException(e);
+            Error dialog = new Error(SplashScreen.frame, e);
+            dialog.display();
         }
     }
 
     private void init() {
-        // Load contact and set up peer
         try {
+            // Load contact and set up peer
             initContactManager();
             peerManager = new PeerManager();
+
+            // Chat boot-up // TODO: test this
+            chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
+            chatReceiver = new ChatReceiver(user, contactManager, DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Error dialog = new Error(SplashScreen.frame, e);
+            dialog.display();
         }
 
         // Broadcast own detail
@@ -86,43 +102,72 @@ public class ContactGUI {
                 try {
                     Broadcast.broadcast(user.getId(), user.getUserName());
                     Thread.sleep(5000);
-                } catch (UnknownHostException | InterruptedException ignored) {}
+                } catch (InterruptedException | IOException ex) {
+                    Error dialog = new Error(SplashScreen.frame, ex);
+                    dialog.display();
+                }
             }
         });
-        broadcastThread.start();
 
         // Listen for other broadcast
         broadcastListenerThread = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
 
-                if (managersWrapper == null) continue;
-                contactManager = managersWrapper.getContactManager();
-                peerManager = managersWrapper.getPeerManager();
+                    if (managersWrapper == null) continue;
+                    contactManager = managersWrapper.contactManager();
+                    peerManager = managersWrapper.peerManager();
 
-                updateList();
+                    updateList();
+                }
+            } catch (IOException e) {
+                Error dialog = new Error(SplashScreen.frame, e);
+                dialog.display();
             }
+
         });
-        broadcastListenerThread.start();
 
         // Listen for contact exchange request
         exchangeListenerThread = new Thread(() -> {
-            Exchange.listener(user, contactManager, SplashScreen.frame);
+            try {
+                while (!Thread.currentThread().isInterrupted()) {
+                    ContactManager gotContactManager = Exchange.listener(user, contactManager, SplashScreen.frame);
+
+                    if (gotContactManager == null) continue;
+                    contactManager = gotContactManager;
+                    peerManager.removePeer(contactManager.getLatestAddedPeer());
+
+                    updateList();
+                }
+            } catch (NoSuchPaddingException | IllegalBlockSizeException | IOException | NoSuchAlgorithmException |
+                     BadPaddingException | InvalidKeyException | InterruptedException | InvalidKeySpecException ex) {
+                Error dialog = new Error(SplashScreen.frame, ex);
+                dialog.display();
+            }
         });
+
+        // Chat receiver listener if accepted change to chat interface
+        // TODO Fix this and maybe use some manual CLI sender?
+        chatListenerThread = new Thread(() -> {
+            while (true) {
+                if (chatReceiver.getIsConnected()) {
+                    // Stop the broadcast and exchange thread
+                    broadcastThread.interrupt();
+                    broadcastListenerThread.interrupt();
+                    exchangeListenerThread.interrupt();
+                    chatListenerThread.interrupt();
+
+                    SplashScreen.changePanel(ChatGUI.getChatPanel());
+                }
+            }
+        });
+
+        // Start the treads
+        broadcastThread.start();
+        broadcastListenerThread.start();
         exchangeListenerThread.start();
-
-        // Chat boot-up // TODO: test this
-        try {
-            chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
-            chatReceiver = new ChatReceiver(user, contactManager, DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        // TODO: chatReceiver method... that will go to the chatGUI
-        //      make a method on the chat receiver to check if connected
-        //      using while true loop and on separate thread
-
+        chatListenerThread.start();
     }
 
     private void updateList() {
@@ -152,11 +197,14 @@ public class ContactGUI {
                     new SwingWorker<Boolean, Void>() {
                         @Override
                         protected Boolean doInBackground() {
-                            boolean accepted;
+                            boolean accepted = false;
                             try {
                                 accepted = Exchange.knowEachOther(user, peer, contactManager, DataBase.getDataBasePath(user.getId()));
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
+                            } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException |
+                                     IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
+                                     InvalidKeySpecException | InvalidAlgorithmParameterException | SQLException ex) {
+                                Error dialog = new Error(SplashScreen.frame, ex);
+                                dialog.display();
                             }
                             return accepted;
                         }
@@ -174,7 +222,8 @@ public class ContactGUI {
                                     new RefusedDialog(SplashScreen.frame).display();
                                 }
                             } catch (ExecutionException | InterruptedException ex) {
-                                throw new RuntimeException(ex);
+                                Error dialog = new Error(SplashScreen.frame, ex);
+                                dialog.display();
                             }
                         }
                     }.execute();
@@ -219,13 +268,15 @@ public class ContactGUI {
                                     broadcastThread.interrupt();
                                     broadcastListenerThread.interrupt();
                                     exchangeListenerThread.interrupt();
+                                    chatListenerThread.interrupt();
 
                                     SplashScreen.changePanel(ChatGUI.getChatPanel());
                                 } else {
                                     new RefusedDialog(SplashScreen.frame).display();
                                 }
                             } catch (ExecutionException | InterruptedException ex) {
-                                throw new RuntimeException(ex);
+                                Error dialog = new Error(SplashScreen.frame, ex);
+                                dialog.display();
                             }
                         }
                     }.execute();
@@ -241,9 +292,16 @@ public class ContactGUI {
     private void initContactManager() throws IOException {
         String database = DataBase.getDataBasePath(user.getId());
 
-        ContactDataBase.initialization(database);
-        contactManager = new ContactManager();
-        contactManager.addContact(ContactDataBase.getContactFromDatabase(user, database));
+        try {
+            ContactDataBase.initialization(database);
+            contactManager = new ContactManager();
+            contactManager.addContact(ContactDataBase.getContactFromDatabase(user, database));
+        } catch (SQLException | InvalidAlgorithmParameterException | NoSuchPaddingException |
+                 IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException |
+                 InvalidKeySpecException ex) {
+            Error dialog = new Error(SplashScreen.frame, ex);
+            dialog.display();
+        }
     }
 
     public static JPanel getContact() {

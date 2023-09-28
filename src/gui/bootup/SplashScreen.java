@@ -1,6 +1,7 @@
 package gui.bootup;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import gui.dialog.Error;
 import logic.data.Constant;
 import logic.data.User;
 import logic.storage.DataBase;
@@ -9,6 +10,7 @@ import logic.storage.UserDataBase;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class SplashScreen {
@@ -53,8 +55,14 @@ public class SplashScreen {
         frame.pack();
 
         // boot up sequence
-        UserDataBase.initialization(DataBase.getDataBasePath());
-        boolean tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
+        boolean tableEmpty = true;
+        try {
+            UserDataBase.initialization(DataBase.getDataBasePath());
+            tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
+        } catch (SQLException e) {
+            Error dialog = new Error(SplashScreen.frame, e);
+            dialog.display();
+        }
 
         //Thread.sleep(5000);
 

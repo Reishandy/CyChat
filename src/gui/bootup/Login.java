@@ -1,12 +1,21 @@
 package gui.bootup;
 
 import gui.contact.ContactGUI;
+import gui.dialog.Error;
 import logic.data.User;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class Login {
@@ -53,8 +62,11 @@ public class Login {
                         userNameWarning.setText("User not found");
                         passwordWarning.setText("User not found");
                     }
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                } catch (IOException | SQLException | InvalidAlgorithmParameterException | NoSuchPaddingException |
+                         IllegalBlockSizeException | NoSuchAlgorithmException | InvalidKeySpecException |
+                         BadPaddingException | InvalidKeyException ex) {
+                    Error dialog = new Error(SplashScreen.frame, ex);
+                    dialog.display();
                 }
             }
         });

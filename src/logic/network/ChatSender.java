@@ -21,6 +21,7 @@ import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class ChatSender {
         out = null;
     }
 
-    public boolean connect(Contact contact) throws IOException {
+    public boolean connect(Contact contact) throws IOException, SQLException {
         if (contact == null) return false;
         this.receiver = contact;
 
@@ -57,7 +58,7 @@ public class ChatSender {
         return true;
     }
 
-    private boolean senderHandshake() {
+    private boolean senderHandshake() throws IOException {
         try (Socket socket = new Socket(receiver.getIp(), Constant.CHAT_HANDSHAKE_PORT)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -70,13 +71,11 @@ public class ChatSender {
             if (in.readLine().equals(Constant.REFUSED)) return false;
         } catch (ConnectException | UnknownHostException ignored) {
             return false;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return true;
     }
 
-    private void loadHistory() {
+    private void loadHistory() throws SQLException {
         HistoryDataBase.initialization(receiver.getId(), database);
         history = HistoryDataBase.getHistoryFromDatabase(receiver.getId(), database);
     }
@@ -116,7 +115,7 @@ public class ChatSender {
         return Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
     }
 
-    public void closeSession() throws IOException {
+    public void closeSession() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         HistoryDataBase.addIntoDatabase(receiver.getId(), history, database);
 
         if (receiver != null) receiver = null;

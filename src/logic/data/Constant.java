@@ -9,6 +9,7 @@ public class Constant {
     public static final String ALGORITHM_SHA_512 = "SHA-512";
     public static final String ACCEPTED = "ACCEPTED";
     public static final String REFUSED = "REFUSED";
+    public static final String CLOSE_SIGNAL = "CKOPJNE3CJH RFCHO WH0ECBIH 3YBX8UXBN83EGCBX8IWN ZX2EUB RFKBN3EXU BNH R (I KNOW THIS IS NOT A GOOD PRACTICE)";
 
     public static final int KEY_SIZE_AES_128 = 128;
     public static final int KEY_SIZE_AES_256 = 256;

@@ -1,19 +1,18 @@
 package logic.network;
 
 import logic.data.Constant;
+import logic.data.ManagersWrapper;
 import logic.data.Peer;
 import logic.manager.ContactManager;
-import logic.manager.ManagersWrapper;
 import logic.manager.PeerManager;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
-import java.net.UnknownHostException;
 
 public class Broadcast {
-    public static void broadcast(String id, String userName) throws UnknownHostException {
+    public static void broadcast(String id, String userName) throws IOException {
         try (DatagramSocket broadcastSocket = new DatagramSocket()) {
             String broadcastMessage = id + ":" + userName + ":" + Address.getLocalIp();
 
@@ -25,11 +24,11 @@ public class Broadcast {
             );
             broadcastSocket.send(packet);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
     }
 
-    public static ManagersWrapper listenForBroadcast(String ownId, ContactManager contactManager, PeerManager peerManager) {
+    public static ManagersWrapper listenForBroadcast(String ownId, ContactManager contactManager, PeerManager peerManager) throws IOException {
         try (DatagramSocket listenSocket = new DatagramSocket(Constant.BROADCAST_PORT)) {
             byte[] buffer = new byte[Constant.BUFFER_LISTEN_FOR_BROADCAST];
 
@@ -56,7 +55,7 @@ public class Broadcast {
             Peer newPeer = new Peer(id, userName, ipAddress);
             peerManager.addPeer(newPeer);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IOException(e);
         }
 
         return new ManagersWrapper(contactManager, peerManager);

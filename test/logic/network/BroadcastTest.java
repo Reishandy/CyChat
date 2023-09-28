@@ -4,7 +4,7 @@ import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.Peer;
 import logic.manager.ContactManager;
-import logic.manager.ManagersWrapper;
+import logic.data.ManagersWrapper;
 import logic.manager.PeerManager;
 import logic.security.Crypto;
 import logic.security.KeyString;
@@ -88,8 +88,8 @@ class BroadcastTest {
             while (!Thread.currentThread().isInterrupted()) {
                 ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(id, contactManager, peerManager);
                 if (managersWrapper == null) continue;
-                contactManager = managersWrapper.getContactManager();
-                peerManager = managersWrapper.getPeerManager();
+                contactManager = managersWrapper.contactManager();
+                peerManager = managersWrapper.peerManager();
             }
         };
         Thread listenThread = new Thread(listenForBroadcastTask);

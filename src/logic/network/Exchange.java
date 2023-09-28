@@ -22,12 +22,15 @@ import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 
 public class Exchange {
-    public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager, String database) {
+    public static boolean knowEachOther(User user, Peer peer, ContactManager contactManager, String database) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidKeySpecException, InvalidAlgorithmParameterException, SQLException {
         try (Socket socket = new Socket(peer.ip(), Constant.EXCHANGE_PORT)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -59,62 +62,49 @@ public class Exchange {
             ContactDataBase.addIntoDatabase(receiver, user, database);
         } catch (ConnectException ignored) {
             return false;
-        } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
-                 IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException(e);
         }
         return true;
     }
 
-    public static void listener(User user, ContactManager contactManager, JFrame frame) {
+    public static ContactManager listener(User user, ContactManager contactManager, JFrame frame) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InterruptedException, InvalidKeySpecException {
         try (ServerSocket socket = new ServerSocket(Constant.EXCHANGE_PORT)) {
-            Socket clientSocket = null;
-            BufferedReader in = null;
-            PrintWriter out = null;
+            Socket clientSocket = socket.accept();
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-            while (!Thread.currentThread().isInterrupted()) {
-                clientSocket = socket.accept();
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
+            // Receive userDetails
+            String[] userDetails = in.readLine().split(":");
+            String senderId = userDetails[0];
+            String senderUserName = userDetails[1];
+            String senderIpAddress = userDetails[2];
 
-                // Receive userDetails
-                String[] userDetails = in.readLine().split(":");
-                String senderId = userDetails[0];
-                String senderUserName = userDetails[1];
-                String senderIpAddress = userDetails[2];
+            if (senderId.equals(user.getId())) return null;
 
-                if (senderId.equals(user.getId())) continue;
-
-                // Decision and send signal
-                boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange", frame);
-                Thread.sleep(500);
-                if (decision) {
-                    out.println(Constant.ACCEPTED);
-                } else {
-                    out.println(Constant.REFUSED);
-                    continue;
-                }
-
-                // Send own public key
-                out.println(KeyString.PublicKeyToString(user.getPublicKey()));
-
-                // Receive encrypted AES key and iv
-                String[] receivedKeys = in.readLine().split(":");
-                String keyAESString = Crypto.decryptRSA(user.getPrivateKey(), receivedKeys[0]);
-                String ivString = Crypto.decryptRSA(user.getPrivateKey(), receivedKeys[1]);
-                String senderPublicKey = receivedKeys[2];
-
-                // Add sender to contact
-                Contact sender = new Contact(senderId, senderUserName, senderPublicKey, keyAESString, ivString);
-                contactManager.addContact(sender);
+            // Decision and send signal
+            boolean decision = decisionHandler(senderUserName, senderIpAddress, "contact exchange", frame);
+            Thread.sleep(500);
+            if (decision) {
+                out.println(Constant.ACCEPTED);
+            } else {
+                out.println(Constant.REFUSED);
+                return null;
             }
 
-            if (clientSocket != null) clientSocket.close();
-            if (in != null) in.close();
-            if (out != null) out.close();
-        } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                 IllegalBlockSizeException | BadPaddingException | InterruptedException e) {
-            throw new RuntimeException(e);
+            // Send own public key
+            out.println(KeyString.PublicKeyToString(user.getPublicKey()));
+
+            // Receive encrypted AES key and iv
+            String[] receivedKeys = in.readLine().split(":");
+            String keyAESString = Crypto.decryptRSA(user.getPrivateKey(), receivedKeys[0]);
+            String ivString = Crypto.decryptRSA(user.getPrivateKey(), receivedKeys[1]);
+            String senderPublicKey = receivedKeys[2];
+
+            // Add sender to contact
+            Contact sender = new Contact(senderId, senderUserName, senderIpAddress, senderPublicKey, keyAESString, ivString);
+            contactManager.addContact(sender);
+            return contactManager;
+        } catch (IOException e) {
+            throw new IOException(e);
         }
     }
 

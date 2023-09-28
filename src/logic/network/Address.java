@@ -40,7 +40,7 @@ public class Address {
 
                 for (InterfaceAddress interfaceAddress : interfaceAddresses) {
                     InetAddress address = interfaceAddress.getAddress();
-
+                    
                     if (!address.isLoopbackAddress() && address.isSiteLocalAddress() && address instanceof java.net.Inet4Address) {
                         return address.getHostAddress();
                     }

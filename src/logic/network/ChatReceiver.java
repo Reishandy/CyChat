@@ -1,5 +1,6 @@
 package logic.network;
 
+import gui.dialog.Error;
 import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.History;
@@ -21,6 +22,7 @@ import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ public class ChatReceiver {
         receiverHandshakeListenerThread.start();
     }
 
-    private void receiverHandshakeListener() {
+    private void receiverHandshakeListener(){
         try (ServerSocket serverSocket = new ServerSocket(Constant.CHAT_HANDSHAKE_PORT)) {
             Socket clientSocket = null;
             BufferedReader in = null;
@@ -93,12 +95,17 @@ public class ChatReceiver {
             if (clientSocket != null) clientSocket.close();
             if (in != null) in.close();
             if (out != null) out.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | SQLException e) {
+            Error dialog = new Error(new JFrame(), e);
+            dialog.display();
         }
     }
 
-    private void loadHistory() throws IOException {
+    public boolean getIsConnected() {
+        return isConnected;
+    }
+
+    private void loadHistory() throws IOException, SQLException {
         HistoryDataBase.initialization(sender.getId(), database);
         history = HistoryDataBase.getHistoryFromDatabase(sender.getId(), database);
     }
@@ -139,7 +146,7 @@ public class ChatReceiver {
         return Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
     }
 
-    public void closeSession() throws IOException {
+    public void closeSession() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         HistoryDataBase.addIntoDatabase(sender.getId(), history, database);
 
         isConnected = false;

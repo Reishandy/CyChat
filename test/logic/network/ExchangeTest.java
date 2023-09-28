@@ -69,14 +69,16 @@ class ExchangeTest {
     @Test
     void handshakeTest() throws UnknownHostException, NoSuchAlgorithmException, InvalidKeySpecException, InterruptedException, SocketException {
         Runnable listenerTask = () -> {
-            Exchange.listener(receiverUser, receiverContactManager, new JFrame());
+            while (!Thread.currentThread().isInterrupted()) {
+                receiverContactManager = Exchange.listener(receiverUser, receiverContactManager, new JFrame());
+            }
         };
         Thread listenerThread = new Thread(listenerTask);
         listenerThread.start();
 
         boolean status = Exchange.knowEachOther(senderUser, receiverPeer, senderContactManager, database);
 
-        Thread.sleep(100);
+        Thread.sleep(1000);
 
         assertTrue(status);
         assertEquals(1, senderContactManager.getContacts().size());
