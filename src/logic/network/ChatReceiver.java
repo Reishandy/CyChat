@@ -109,20 +109,23 @@ public class ChatReceiver {
     }
 
     public void send(String message) throws InvalidAlgorithmParameterException, NoSuchPaddingException,
-            IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+            IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         LocalDateTime currentDateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy/MM/dd - HH:mm");
         String formattedDateTime = currentDateTime.format(formatter);
         String encryptedMessage = Crypto.encryptAES(message, sender.getAESKey(), sender.getIv());
 
         History readyHistory = new History(receiver.getUserName(), formattedDateTime, encryptedMessage);
-        history.add(readyHistory);
+        if (!message.equals(Constant.CLOSE_SIGNAL)) {
+            history.add(readyHistory);
+            HistoryDataBase.addIntoDatabase(sender.getId(), readyHistory, database);
+        }
 
         String readyMessage = readyHistory.userName() + " // " + readyHistory.dateTime() + " // " + readyHistory.message();
         out.println(readyMessage);
     }
 
-    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         // Needs to be on it's own thread and in a loop
         String receivedMessage = in.readLine();
         if (receivedMessage == null) return null;
@@ -132,15 +135,13 @@ public class ChatReceiver {
         String messageDateTime = splitMessage[1];
         String encryptedMessage = splitMessage[2];
 
-        history.add(new History(senderUserName, messageDateTime, encryptedMessage));
+        History readyHistory = new History(senderUserName, messageDateTime, encryptedMessage);
+        history.add(readyHistory);
+        HistoryDataBase.addIntoDatabase(sender.getId(), readyHistory, database);
 
         String decryptedMessage = Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
 
         return new History(senderUserName, messageDateTime, decryptedMessage);
-    }
-
-    public void saveChat() throws SQLException {
-        HistoryDataBase.addIntoDatabase(sender.getId(), history, database);
     }
 
     public void closeSession() throws IOException {

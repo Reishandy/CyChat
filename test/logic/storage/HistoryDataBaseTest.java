@@ -45,7 +45,9 @@ class HistoryDataBaseTest {
         histories.add(new History(sender, time, message2));
 
         HistoryDataBase.initialization(recipientId, database);
-        HistoryDataBase.addIntoDatabase(recipientId, histories, database);
+        for (History history: histories) {
+            HistoryDataBase.addIntoDatabase(recipientId, history, database);
+        }
 
         ArrayList<History> historiesGet = HistoryDataBase.getHistoryFromDatabase(recipientId, database);
         assertNotNull(historiesGet);

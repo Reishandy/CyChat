@@ -9,8 +9,6 @@ import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.History;
 import logic.security.Crypto;
-import logic.storage.DataBase;
-import logic.storage.HistoryDataBase;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -18,7 +16,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -82,25 +79,27 @@ public class ChatGUI {
             if (result) {
                 try {
                     if (isSender) {
-                        SplashScreen.chatSender.saveChat();
                         SplashScreen.chatSender.closeSession();
                     } else {
-                        SplashScreen.chatReceiver.saveChat();
                         SplashScreen.chatReceiver.closeSession();
                     }
-                } catch (SQLException | IOException ex) {
+                } catch (IOException ex) {
                     Error dialog2 = new Error(SplashScreen.frame, ex);
                     dialog2.display();
                 }
 
                 sendMessage(Constant.CLOSE_SIGNAL);
                 messageRecieverThread.interrupt();
+
+                // TODO: temp fix
+                SplashScreen.chatSender = null;
+                SplashScreen.chatReceiver = null;
+
                 SplashScreen.changePanel(ContactGUI.getContact());
             }
         });
 
-        // TODO: fix history not saving
-        // TODO: fix cannot contact againn after coming back
+        // TODO: fix cannot contact again after coming back
     }
 
     private void loadChatHistory() {
@@ -141,7 +140,7 @@ public class ChatGUI {
                 SplashScreen.chatReceiver.send(message);
             }
         } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                 NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+                 NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
         }
@@ -157,13 +156,12 @@ public class ChatGUI {
                         History receivedMessage = SplashScreen.chatSender.receive();
                         if (receivedMessage.message().equals(Constant.CLOSE_SIGNAL)) kickedOut();
                         addPartnerBubble(receivedMessage);
-                    } catch (IOException | NullPointerException e) {
+                    } catch (NullPointerException | IOException e) {
                         // Exit because partner exited
                         kickedOut();
                         break;
-                    } catch (InvalidAlgorithmParameterException | NoSuchPaddingException |
-                             IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
-                             InvalidKeyException e) {
+                    } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+                             NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
                         Error dialog = new Error(SplashScreen.frame, e);
                         dialog.display();
                     }
@@ -176,13 +174,12 @@ public class ChatGUI {
                         History receivedMessage = SplashScreen.chatReceiver.receive();
                         if (receivedMessage.message().equals(Constant.CLOSE_SIGNAL)) kickedOut();
                         addPartnerBubble(receivedMessage);
-                    } catch (IOException | NullPointerException e) {
+                    } catch (NullPointerException | IOException e) {
                         // Exit because partner exited
                         kickedOut();
                         break;
-                    } catch (InvalidAlgorithmParameterException | NoSuchPaddingException |
-                             IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
-                             InvalidKeyException e) {
+                    }catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+                             NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
                         Error dialog = new Error(SplashScreen.frame, e);
                         dialog.display();
                     }
@@ -288,19 +285,21 @@ public class ChatGUI {
     private void kickedOut() {
         try {
             if (isSender) {
-                SplashScreen.chatSender.saveChat();
                 SplashScreen.chatSender.closeSession();
             } else {
-                SplashScreen.chatReceiver.saveChat();
                 SplashScreen.chatReceiver.closeSession();
             }
-        } catch (SQLException | IOException e) {
+        } catch (IOException e) {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
         }
 
         messageRecieverThread.interrupt();
-        messageRecieverThread = null;
+
+        // TODO: temp fix
+        SplashScreen.chatSender = null;
+        SplashScreen.chatReceiver = null;
+
         new RefusedDialog(SplashScreen.frame, "Partner Disconnected").display();
         SplashScreen.changePanel(ContactGUI.getContact());
     }

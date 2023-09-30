@@ -57,7 +57,9 @@ public class ContactGUI {
         // Get user from boot up
         this.user = SplashScreen.user;
 
-        // TODO: add some loading animation
+        // some loading animation
+        RequestingDialog dialogLoad = new RequestingDialog(SplashScreen.frame, "Loading");
+        dialogLoad.display();
 
         // init Handlers and Managers
         initManager();
@@ -78,6 +80,8 @@ public class ContactGUI {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
         }
+
+        dialogLoad.close();
     }
 
     private void initManager() {

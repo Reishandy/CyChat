@@ -20,7 +20,7 @@ public class HistoryDataBase {
             preparedStatement = connection.prepareStatement(
                     "CREATE TABLE IF NOT EXISTS " + id + " (" +
                             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "userName UNIQUE," +
+                            "userName TEXT," +
                             "dateTime TEXT," +
                             "encryptedMessage TEXT);"
             );
@@ -40,7 +40,7 @@ public class HistoryDataBase {
         }
     }
 
-    public static void addIntoDatabase(String id, ArrayList<History> histories, String database) throws SQLException {
+    public static void addIntoDatabase(String id, History history, String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -50,16 +50,14 @@ public class HistoryDataBase {
             if (!id.matches("[A-Za-z0-9_]+")) {
                 throw new SQLException("Invalid table name");
             }
-            preparedStatement = connection.prepareStatement(
-                    "INSERT OR IGNORE INTO " + id + " (userName, dateTime, encryptedMessage) VALUES (?, ?, ?)"
-            );
 
-            for (History history: histories) {
-                preparedStatement.setString(1, history.userName());
-                preparedStatement.setString(2, history.dateTime());
-                preparedStatement.setString(3, history.message());
-                preparedStatement.executeUpdate();
-            }
+            preparedStatement = connection.prepareStatement(
+                    "INSERT INTO " + id + " (userName, dateTime, encryptedMessage) VALUES (?, ?, ?)"
+            );
+            preparedStatement.setString(1, history.userName());
+            preparedStatement.setString(2, history.dateTime());
+            preparedStatement.setString(3, history.message());
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException(e);
         } finally {
