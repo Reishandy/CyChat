@@ -5,10 +5,7 @@ import gui.chat.ChatGUI;
 import gui.dialog.Error;
 import gui.dialog.RefusedDialog;
 import gui.dialog.RequestingDialog;
-import logic.data.Contact;
-import logic.data.ManagersWrapper;
-import logic.data.Peer;
-import logic.data.User;
+import logic.data.*;
 import logic.manager.ContactManager;
 import logic.manager.PeerManager;
 import logic.network.*;
@@ -23,6 +20,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -34,15 +32,9 @@ import java.util.Vector;
 import java.util.concurrent.*;
 
 public class ContactGUI {
-    public static ContactManager contactManager;
-    public static PeerManager peerManager;
-    public static ChatSender chatSender;
-    public static ChatReceiver chatReceiver;
+    private boolean isConnected;
     private final User user;
-    ScheduledExecutorService broadcastTask;
-    private Thread broadcastListenerThread;
-    private Thread exchangeListenerThread;
-    private Thread chatListenerThread;
+    private ScheduledExecutorService broadcastTask;
 
     private JPanel contactPanel;
     private JPanel topBarPanel;
@@ -54,10 +46,11 @@ public class ContactGUI {
     private JLabel contactInstructionLabel;
     private JLabel peerInstructionLabel;
     private JLabel debug;
+    private JButton button1;
 
     public ContactGUI() {
         // Set up some ui stuff
-        topBarPanel.setBackground(new Color(140, 82, 255));
+        topBarPanel.setBackground(Constant.MAIN_ACCENT_COLOR);
         contactListPanel.setBackground(Color.WHITE);
         peerListPanel.setBackground(Color.WHITE);
 
@@ -66,8 +59,11 @@ public class ContactGUI {
 
         // TODO: add some loading animation
 
+        // init Handlers and Managers
+        initManager();
+
         // Init the logic
-        init();
+        initThread();
 
         // Display initial contacts and peers
         displayContacts();
@@ -75,27 +71,41 @@ public class ContactGUI {
 
         try {
             debug.setText(Address.getLocalIp() + " @ " + Address.getInterface());
+            button1.addActionListener(e -> {
+               changeToChat();
+            });
         } catch (SocketException e) {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
         }
     }
 
-    private void init() {
+    private void initManager() {
         try {
-            // Load contact and set up peer
-            initContactManager();
-            peerManager = new PeerManager();
+            // Load contact if null
+            if (SplashScreen.contactManager == null) {
+                initContactManager();
+            }
+
+            // Set up peer if null
+            if (SplashScreen.peerManager == null) {
+                SplashScreen.peerManager = new PeerManager();
+            }
 
             // Chat boot-up // TODO: test this
-            chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
-            chatReceiver = new ChatReceiver(user, contactManager, DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
+            if (SplashScreen.chatSender == null || SplashScreen.chatReceiver == null) {
+                SplashScreen.chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
+                SplashScreen.chatReceiver = new ChatReceiver(user, SplashScreen.contactManager, DataBase.getDataBasePath(user.getId()),
+                        SplashScreen.frame);
+            }
         } catch (IOException e) {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
         }
+    }
 
-        // Broadcast own detail
+    private void initThread() {
+        // Start broadcasting own detail
         broadcastTask = Executors.newSingleThreadScheduledExecutor();
         broadcastTask.scheduleAtFixedRate(() -> {
             try {
@@ -106,15 +116,25 @@ public class ContactGUI {
             }
         }, 0, 5, TimeUnit.SECONDS);
 
+        isConnected = false;
+        if (SplashScreen.broadcastListenerThread != null &&
+                SplashScreen.exchangeListenerThread != null &&
+                SplashScreen.chatListenerThread != null) {
+            return;
+        }
+
         // Listen for other broadcast
-        broadcastListenerThread = new Thread(() -> {
+        SplashScreen.broadcastListenerThread = new Thread(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(user.getId(), contactManager, peerManager);
+                    if (isConnected) continue;
+
+                    ManagersWrapper managersWrapper = Broadcast.listenForBroadcast(user.getId(),
+                            SplashScreen.contactManager, SplashScreen.peerManager);
 
                     if (managersWrapper == null) continue;
-                    contactManager = managersWrapper.contactManager();
-                    peerManager = managersWrapper.peerManager();
+                    SplashScreen.contactManager = managersWrapper.contactManager();
+                    SplashScreen.peerManager = managersWrapper.peerManager();
 
                     updateList();
                 }
@@ -125,14 +145,17 @@ public class ContactGUI {
         });
 
         // Listen for contact exchange request
-        exchangeListenerThread = new Thread(() -> {
+        SplashScreen.exchangeListenerThread = new Thread(() -> {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
-                    ContactManager gotContactManager = Exchange.listener(user, contactManager, DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
+                    if (isConnected) continue;
+
+                    ContactManager gotContactManager = Exchange.listener(user, SplashScreen.contactManager,
+                            DataBase.getDataBasePath(user.getId()), SplashScreen.frame);
 
                     if (gotContactManager == null) continue;
-                    contactManager = gotContactManager;
-                    peerManager.removePeer(contactManager.getLatestAddedPeer());
+                    SplashScreen.contactManager = gotContactManager;
+                    SplashScreen.peerManager.removePeer(SplashScreen.contactManager.getLatestAddedPeer());
 
                     updateList();
                 }
@@ -145,25 +168,20 @@ public class ContactGUI {
         });
 
         // Chat receiver listener if accepted change to chat interface
-        // TODO Fix this and maybe use some manual CLI sender?
-        chatListenerThread = new Thread(() -> {
+        SplashScreen.chatListenerThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
-                if (chatReceiver.receiverHandshakeListener()) {
-                    // Stop the broadcast and exchange thread
-                    broadcastTask.shutdown();
-                    broadcastListenerThread.interrupt();
-                    exchangeListenerThread.interrupt();
-                    chatListenerThread.interrupt();
+                if (isConnected) continue;
 
-                    SplashScreen.changePanel(ChatGUI.getChatPanel());
+                if (SplashScreen.chatReceiver.receiverHandshakeListener()) {
+                    changeToChat();
                 }
             }
         });
 
         // Start the treads
-        broadcastListenerThread.start();
-        exchangeListenerThread.start();
-        chatListenerThread.start();
+        SplashScreen.broadcastListenerThread.start();
+        SplashScreen.exchangeListenerThread.start();
+        SplashScreen.chatListenerThread.start();
     }
 
     private void updateList() {
@@ -178,7 +196,7 @@ public class ContactGUI {
     }
 
     private void displayPeers() {
-        JList<Peer> peerList = new JList<>(new Vector<>(peerManager.getPeers()));
+        JList<Peer> peerList = new JList<>(new Vector<>(SplashScreen.peerManager.getPeers()));
         peerList.setCellRenderer(new PeerCellRenderer());
 
         peerList.addMouseListener(new MouseAdapter() {
@@ -187,7 +205,7 @@ public class ContactGUI {
                     int index = peerList.locationToIndex(e.getPoint());
                     Peer peer = peerList.getModel().getElementAt(index);
 
-                    RequestingDialog dialog = new RequestingDialog(SplashScreen.frame);
+                    RequestingDialog dialog = new RequestingDialog(SplashScreen.frame, "Requesting");
                     dialog.display();
 
                     new SwingWorker<Boolean, Void>() {
@@ -195,7 +213,7 @@ public class ContactGUI {
                         protected Boolean doInBackground() {
                             boolean accepted = false;
                             try {
-                                accepted = Exchange.knowEachOther(user, peer, contactManager, DataBase.getDataBasePath(user.getId()));
+                                accepted = Exchange.knowEachOther(user, peer, SplashScreen.contactManager, DataBase.getDataBasePath(user.getId()));
                             } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException |
                                      IllegalBlockSizeException | BadPaddingException | InvalidKeyException |
                                      InvalidKeySpecException | InvalidAlgorithmParameterException | SQLException ex) {
@@ -212,10 +230,10 @@ public class ContactGUI {
                                 dialog.close();
 
                                 if (accepted) {
-                                    peerManager.removePeer(peer);
+                                    SplashScreen.peerManager.removePeer(peer);
                                     updateList();
                                 } else {
-                                    new RefusedDialog(SplashScreen.frame).display();
+                                    new RefusedDialog(SplashScreen.frame, "Refused or timed out").display();
                                 }
                             } catch (ExecutionException | InterruptedException ex) {
                                 Error dialog = new Error(SplashScreen.frame, ex);
@@ -233,7 +251,7 @@ public class ContactGUI {
     }
 
     private void displayContacts() {
-        JList<Contact> contactList = new JList<>(new Vector<>(contactManager.getContacts()));
+        JList<Contact> contactList = new JList<>(new Vector<>(SplashScreen.contactManager.getContacts()));
         contactList.setCellRenderer(new ContactCellRenderer());
 
         contactList.addMouseListener(new MouseAdapter() {
@@ -242,14 +260,14 @@ public class ContactGUI {
                     int index = contactList.locationToIndex(e.getPoint());
                     Contact contact = contactList.getModel().getElementAt(index);
 
-                    RequestingDialog dialog = new RequestingDialog(SplashScreen.frame);
+                    RequestingDialog dialog = new RequestingDialog(SplashScreen.frame, "Requesting");
                     dialog.display();
 
                     new SwingWorker<Boolean, Void>() {
                         @Override
                         protected Boolean doInBackground() throws Exception {
                             boolean accepted;
-                            accepted = chatSender.connect(contact);
+                            accepted = SplashScreen.chatSender.connect(contact);
                             return accepted;
                         }
 
@@ -260,17 +278,14 @@ public class ContactGUI {
                                 dialog.close();
 
                                 if (accepted) {
-                                    // Stop the broadcast and exchange thread
-                                    broadcastTask.shutdown();
-                                    broadcastListenerThread.interrupt();
-                                    exchangeListenerThread.interrupt();
-                                    chatListenerThread.interrupt();
-
-                                    SplashScreen.changePanel(ChatGUI.getChatPanel());
+                                    changeToChat();
                                 } else {
-                                    new RefusedDialog(SplashScreen.frame).display();
+                                    new RefusedDialog(SplashScreen.frame, "Refused or timed out").display();
                                 }
-                            } catch (ExecutionException | InterruptedException ex) {
+                            } catch (ExecutionException e) {
+                                dialog.close();
+                                new RefusedDialog(SplashScreen.frame, "Refused or timed out").display();
+                            } catch (InterruptedException ex) {
                                 Error dialog = new Error(SplashScreen.frame, ex);
                                 dialog.display();
                             }
@@ -290,14 +305,21 @@ public class ContactGUI {
 
         try {
             ContactDataBase.initialization(database);
-            contactManager = new ContactManager();
-            contactManager.addContact(ContactDataBase.getContactFromDatabase(user, database));
+            SplashScreen.contactManager = new ContactManager();
+            SplashScreen.contactManager.addContact(ContactDataBase.getContactFromDatabase(user, database));
         } catch (SQLException | InvalidAlgorithmParameterException | NoSuchPaddingException |
                  IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException | InvalidKeyException |
                  InvalidKeySpecException ex) {
             Error dialog = new Error(SplashScreen.frame, ex);
             dialog.display();
         }
+    }
+
+    private void changeToChat() {
+        broadcastTask.shutdown();
+        isConnected = true;
+
+        SplashScreen.changePanel(ChatGUI.getChatPanel());
     }
 
     public static JPanel getContact() {
@@ -307,8 +329,5 @@ public class ContactGUI {
     private void createUIComponents() {
         ImageIcon logoIcon = new ImageIcon(Objects.requireNonNull(ContactGUI.class.getResource("/CyChatReversed.png")));
         topBarLogo = new JLabel(logoIcon);
-
-        contactListPanel = new JPanel(new BorderLayout());
-        peerListPanel = new JPanel(new BorderLayout());
     }
 }

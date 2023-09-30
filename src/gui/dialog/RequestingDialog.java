@@ -8,14 +8,14 @@ public class RequestingDialog extends JDialog {
     private Timer timer;
     private int dotCount = 0;
 
-    public RequestingDialog(JFrame frame) {
+    public RequestingDialog(JFrame frame, String message) {
         // Set up
         super(frame, true);
         setContentPane(contentPane);
         setModal(false);
 
         // Displaying the request animation
-        startAnimation();
+        startAnimation(message);
 
         // prevent closing by pressing the cross
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -25,9 +25,9 @@ public class RequestingDialog extends JDialog {
         setResizable(false);
     }
 
-    private void startAnimation() {
+    private void startAnimation(String message) {
         timer = new Timer(500, e -> {
-            messageLabel.setText("Requesting" + ".".repeat(Math.max(0, dotCount)));
+            messageLabel.setText(message + ".".repeat(Math.max(0, dotCount)));
 
             dotCount++;
             if (dotCount > 3) dotCount = 0;

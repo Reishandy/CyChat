@@ -18,7 +18,7 @@ public class Contact {
 
     public Contact(String id, String userName, String publicKeyString, String aesKeyString, String ivString) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.id = id;
-        this.ip = "192.168.0.0";
+        this.ip = "NONE";
         this.userName = userName;
         this.keyRSA = new RSA(publicKeyString);
         this.keyAES = new AES(aesKeyString, ivString);

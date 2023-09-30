@@ -35,7 +35,7 @@ class ContactTest {
             assertEquals(contact.getPublicKeyString(), publicKeyString);
             assertEquals(contact.getAESKeyString(), aesKeyString);
             assertEquals(contact.getIvString(), ivString);
-            assertEquals(contact.getIp(), "192.168.0.0");
+            assertEquals(contact.getIp(), "NONE");
 
             ipTest();
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {

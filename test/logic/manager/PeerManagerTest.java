@@ -16,7 +16,7 @@ class PeerManagerTest {
 
     @Test
     public void testCheckPeerExist() {
-        Peer peer1 = new Peer("User1","User1", "192.168.0.0");
+        Peer peer1 = new Peer("User1","User1", "NONE");
         peerManager.addPeer(peer1);
 
         assertTrue(peerManager.checkPeerExist("User1"));
@@ -25,7 +25,7 @@ class PeerManagerTest {
 
     @Test
     public void testAddPeer() {
-        Peer peer1 = new Peer("User1","User1", "192.168.0.0");
+        Peer peer1 = new Peer("User1","User1", "NONE");
         peerManager.addPeer(peer1);
 
         assertEquals(1, peerManager.getPeers().size());
@@ -34,13 +34,13 @@ class PeerManagerTest {
 
     @Test
     public void testGetPeer() {
-        Peer peer1 = new Peer("User1","User1", "192.168.0.0");
+        Peer peer1 = new Peer("User1","User1", "NONE");
         peerManager.addPeer(peer1);
 
         Peer retrievedPeer = peerManager.getPeer("User1");
 
         assertNotNull(retrievedPeer);
         assertEquals("User1", retrievedPeer.userName());
-        assertEquals("192.168.0.0", retrievedPeer.ip());
+        assertEquals("NONE", retrievedPeer.ip());
     }
 }

@@ -33,12 +33,12 @@ public class ChatReceiver {
     private final String database;
     private  ArrayList<History> history;
     private final User receiver;
-    private  Contact sender;
+    private Contact sender;
     private final ContactManager contactManager;
-    private   ServerSocket receiverSocket;
-    private   Socket senderSocket;
-    private  BufferedReader in;
-    private   PrintWriter out;
+    private ServerSocket receiverSocket;
+    private Socket senderSocket;
+    private BufferedReader in;
+    private PrintWriter out;
     private final JFrame frame;
 
     public ChatReceiver(User user, ContactManager contactManager, String database, JFrame frame) {
@@ -52,6 +52,14 @@ public class ChatReceiver {
         in = null;
         out = null;
         this.frame = frame;
+    }
+
+    public ArrayList<History> getHistory() {
+        return history;
+    }
+
+    public Contact getSender() {
+        return sender;
     }
 
     public boolean receiverHandshakeListener(){
@@ -73,8 +81,8 @@ public class ChatReceiver {
                 out.println(Constant.ACCEPTED);
                 sender = contactManager.getContact(senderId);
 
-                loadHistory();
                 initConnection();
+                loadHistory();
 
                 accepted = true;
             } else {
@@ -114,7 +122,7 @@ public class ChatReceiver {
         out.println(readyMessage);
     }
 
-    public String receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         // Needs to be on it's own thread and in a loop
         String receivedMessage = in.readLine();
         if (receivedMessage == null) return null;
@@ -126,16 +134,17 @@ public class ChatReceiver {
 
         history.add(new History(senderUserName, messageDateTime, encryptedMessage));
 
-        return Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
+        String decryptedMessage = Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
+
+        return new History(senderUserName, messageDateTime, decryptedMessage);
     }
 
-    public void closeSession() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
+    public void saveChat() throws SQLException {
         HistoryDataBase.addIntoDatabase(sender.getId(), history, database);
+    }
 
-        if (sender != null) sender = null;
+    public void closeSession() throws IOException {
+        //if (sender != null) sender = null;
         if (senderSocket != null) senderSocket.close();
-        if (senderSocket != null) senderSocket.close();
-        if (in != null) in.close();
-        if (out != null) out.close();
     }
 }

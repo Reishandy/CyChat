@@ -2,6 +2,7 @@ package logic;
 
 import logic.data.Constant;
 import logic.data.Contact;
+import logic.data.History;
 import logic.data.User;
 import logic.manager.ContactManager;
 import logic.network.Address;
@@ -111,10 +112,10 @@ public class FullChatSequenceTest {
             Runnable receiveMessageTask = () -> {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        String receivedMessage = chatSender.receive();
+                        History receivedMessage = chatSender.receive();
                         if (receivedMessage == null) continue;
 
-                        receivedMessageSender.add(receivedMessage);
+                        receivedMessageSender.add(receivedMessage.message());
                     } catch (SocketException e) {
                         return;
                     } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException |
@@ -134,6 +135,7 @@ public class FullChatSequenceTest {
             assertEquals(message2, receivedMessageSender.get(0));
 
             revieveMessageThread.interrupt();
+            chatSender.saveChat();
             chatSender.closeSession();
 
         } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
@@ -151,10 +153,10 @@ public class FullChatSequenceTest {
             Runnable receiveMessageTask = () -> {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        String receivedMessage = chatReceiver.receive();
+                        History receivedMessage = chatReceiver.receive();
                         if (receivedMessage == null) continue;
 
-                        receivedMessageReceiver.add(receivedMessage);
+                        receivedMessageReceiver.add(receivedMessage.message());
                     } catch (SocketException e) {
                         return;
                     } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException |
@@ -174,6 +176,7 @@ public class FullChatSequenceTest {
             assertEquals(message1, receivedMessageReceiver.get(0));
 
             revieveMessageThread.interrupt();
+            chatReceiver.saveChat();
             chatReceiver.closeSession();
 
         } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |

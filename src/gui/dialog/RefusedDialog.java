@@ -7,13 +7,13 @@ public class RefusedDialog extends JDialog {
     private JButton buttonOK;
     private JLabel messageLabel;
 
-    public RefusedDialog(JFrame frame) {
+    public RefusedDialog(JFrame frame, String message) {
         // Set up
         super(frame, true);
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-        messageLabel.setText("Refused or timed out");
+        messageLabel.setText(message);
 
 
         // Button handler

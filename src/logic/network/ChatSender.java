@@ -44,15 +44,25 @@ public class ChatSender {
         out = null;
     }
 
+    public ArrayList<History> getHistory() {
+        return history;
+    }
+
+    public Contact getReceiver() {
+        return receiver;
+    }
+
     public boolean connect(Contact contact) throws IOException, SQLException {
         if (contact == null) return false;
         this.receiver = contact;
 
-        if (!senderHandshake()) return false;
-
-        loadHistory();
+        if (!senderHandshake()) {
+            return false;
+        }
 
         initConnection();
+
+        loadHistory();
 
         return true;
     }
@@ -99,7 +109,7 @@ public class ChatSender {
         out.println(readyMessage);
     }
 
-    public String receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         // Needs to be on it's own thread and in a loop
         String receivedMessage = in.readLine();
         if (receivedMessage == null) return null;
@@ -111,15 +121,17 @@ public class ChatSender {
 
         history.add(new History(senderUserName, messageDateTime, encryptedMessage));
 
-        return Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
+        String decryptedMessage = Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
+
+        return new History(senderUserName, messageDateTime, decryptedMessage);
     }
 
-    public void closeSession() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
+    public void saveChat() throws SQLException {
         HistoryDataBase.addIntoDatabase(receiver.getId(), history, database);
+    }
 
-        if (receiver != null) receiver = null;
+    public void closeSession() throws IOException {
+        //if (receiver != null) receiver = null;
         if (senderSocket != null) senderSocket.close();
-        if (in != null) in.close();
-        if (out != null) out.close();
     }
 }

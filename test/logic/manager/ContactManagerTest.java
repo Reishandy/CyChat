@@ -63,6 +63,6 @@ class ContactManagerTest {
 
         assertNotNull(retrievedContact);
         assertEquals("User1", retrievedContact.getUserName());
-        assertEquals("192.168.0.0", retrievedContact.getIp());
+        assertEquals("NONE", retrievedContact.getIp());
     }
 }

@@ -1,9 +1,14 @@
 package gui.bootup;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import gui.chat.ChatGUI;
 import gui.dialog.Error;
 import logic.data.Constant;
 import logic.data.User;
+import logic.manager.ContactManager;
+import logic.manager.PeerManager;
+import logic.network.ChatReceiver;
+import logic.network.ChatSender;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;
 
@@ -17,6 +22,14 @@ public class SplashScreen {
     public static User user;
     public static JFrame frame;
     private JPanel splashScreen;
+
+    public static Thread broadcastListenerThread = null;
+    public static Thread exchangeListenerThread = null;
+    public static Thread chatListenerThread = null;
+    public static ChatSender chatSender = null;
+    public static ChatReceiver chatReceiver = null;
+    public static ContactManager contactManager = null;
+    public static PeerManager peerManager = null;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         // Set up theme
