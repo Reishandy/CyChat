@@ -4,13 +4,14 @@ import org.junit.jupiter.api.Test;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class KeyStringTest {
 
@@ -41,8 +42,8 @@ class KeyStringTest {
             String publicKeyString = KeyString.PublicKeyToString(publicKey);
             PublicKey publicKeyDecoded = KeyString.StringToPublicKey(publicKeyString);
             assertEquals(publicKeyDecoded, publicKey, "Round-trip testing failed for PublicKey");
-        } catch (NoSuchAlgorithmException e) {
-            fail("NoSuchAlgorithmException should not be thrown");
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            fail("No error should not be thrown");
         }
     }
 
@@ -53,8 +54,8 @@ class KeyStringTest {
             String privateKeyString = KeyString.PrivateKeyToString(privateKey);
             PrivateKey privateKeyDecoded = KeyString.StringToPrivateKey(privateKeyString);
             assertEquals(privateKeyDecoded, privateKey, "Round-trip testing failed for PrivateKey");
-        } catch (NoSuchAlgorithmException e) {
-            fail("NoSuchAlgorithmException should not be thrown");
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            fail("No error should not be thrown");
         }
     }
 }

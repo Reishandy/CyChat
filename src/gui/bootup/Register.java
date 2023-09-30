@@ -1,14 +1,20 @@
 package gui.bootup;
 
-import logic.data.Constant;
+import gui.dialog.Error;
 import logic.data.User;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class Register {
@@ -72,8 +78,11 @@ public class Register {
                     User newUser = new User(userName, password);
                     UserDataBase.addIntoDatabase(newUser, DataBase.getDataBasePath());
                     SplashScreen.changePanel(Login.getLogin());
-                } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException ex) {
-                    throw new RuntimeException(ex);
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException |
+                         InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+                         BadPaddingException | InvalidKeyException | SQLException ex) {
+                    Error dialog = new Error(SplashScreen.frame, ex);
+                    dialog.display();
                 }
             }
         });

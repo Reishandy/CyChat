@@ -76,5 +76,5 @@ public class User {
 
     public IvParameterSpec getIv() {
         return keyMainKey.getIv();
-    };
+    }
 }

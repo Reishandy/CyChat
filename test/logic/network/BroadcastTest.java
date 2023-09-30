@@ -2,20 +2,22 @@ package logic.network;
 
 import logic.data.Constant;
 import logic.data.Contact;
+import logic.data.ManagersWrapper;
 import logic.data.Peer;
 import logic.manager.ContactManager;
 import logic.manager.PeerManager;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Inet4Address;
-import java.net.UnknownHostException;
+import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,17 +37,18 @@ class BroadcastTest {
             id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             dogId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             userName = "Cat";
-            localHostIpAddress = Inet4Address.getLocalHost().getHostAddress();
+            localHostIpAddress = Address.getLocalIp();
+            assert localHostIpAddress != null;
             testIpAddress = incrementIPAddress(localHostIpAddress, 10);
 
             contact = new Contact(dogId, "Dog", KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic()),
-                    KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128)),
+                    KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128)),
                     KeyString.IvToString(Crypto.generateIv()));
             contactManager.addContact(contact);
 
             newId = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             newUserName = "Dog_haters_123_xXx";
-        } catch (NoSuchAlgorithmException | UnknownHostException e) {
+        } catch (NoSuchAlgorithmException | SocketException | InvalidKeySpecException e) {
             fail("No errors should be thrown");
         }
     }
@@ -54,14 +57,17 @@ class BroadcastTest {
     void broadcastTest() throws InterruptedException {
         Runnable broadcastTask = () -> {
             try {
-                Broadcast.broadcast(id, userName);
-            } catch (UnknownHostException e) {
+                while (!Thread.currentThread().isInterrupted()) {
+                    Broadcast.broadcast(id, userName);
+                }
+            } catch (IOException e) {
                 fail("UnknownHostException should not be thrown");
             }
         };
         Thread broadcastThread = new Thread(broadcastTask);
         broadcastThread.start();
-        Thread.sleep(5005);
+
+        Thread.sleep(3000);
 
         String[] receivedMessage = listenTest();
         assertNotNull(receivedMessage);
@@ -83,7 +89,17 @@ class BroadcastTest {
     @Test
     void listenForBroadcastTest() throws InterruptedException {
         Runnable listenForBroadcastTask = () -> {
-            Broadcast.listenForBroadcast(id, contactManager, peerManager);
+            while (!Thread.currentThread().isInterrupted()) {
+                ManagersWrapper managersWrapper = null;
+                try {
+                    managersWrapper = Broadcast.listenForBroadcast(id, contactManager, peerManager);
+                } catch (IOException e) {
+                    fail("Mo error should be thrown");
+                }
+                if (managersWrapper == null) continue;
+                contactManager = managersWrapper.contactManager();
+                peerManager = managersWrapper.peerManager();
+            }
         };
         Thread listenThread = new Thread(listenForBroadcastTask);
         listenThread.start();
@@ -117,8 +133,8 @@ class BroadcastTest {
     }
 
     String[] listenTest() {
-        try (DatagramSocket listenSocket = new DatagramSocket(Constant.broadcastPort)) {
-            byte[] buffer = new byte[Constant.bufferListenForBroadcast];
+        try (DatagramSocket listenSocket = new DatagramSocket(Constant.BROADCAST_PORT)) {
+            byte[] buffer = new byte[Constant.BUFFER_LISTEN_FOR_BROADCAST];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             listenSocket.receive(packet);
 
@@ -129,14 +145,14 @@ class BroadcastTest {
     }
 
     void broadcastForListenTest(String id, String userName, String ipAddress) {
-        try (DatagramSocket broadcastSocket = new DatagramSocket();) {
+        try (DatagramSocket broadcastSocket = new DatagramSocket()) {
             String broadcastMessage = id + ":" + userName + ":" + ipAddress;
 
             DatagramPacket packet = new DatagramPacket(
                     broadcastMessage.getBytes(),
                     broadcastMessage.length(),
-                    Inet4Address.getByName("255.255.255.255"),
-                    Constant.broadcastPort
+                    Inet4Address.getByName(Address.getBroadcastAddress()),
+                    Constant.BROADCAST_PORT
             );
             broadcastSocket.send(packet);
         } catch (IOException e) {

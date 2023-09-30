@@ -14,24 +14,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Inet4Address;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class ChatSender {
-    String database;
-    ArrayList<History> history;
-    User sender;
-    Contact receiver;
-    Socket senderSocket;
-    BufferedReader in;
-    PrintWriter out;
+    private final String database;
+    private ArrayList<History> history;
+    private final User sender;
+    private Contact receiver;
+    private Socket senderSocket;
+    private BufferedReader in;
+    private PrintWriter out;
 
     public ChatSender(User user, String database) {
         this.database = database;
@@ -43,45 +44,53 @@ public class ChatSender {
         out = null;
     }
 
-    public boolean connect(Contact contact) throws IOException {
+    public ArrayList<History> getHistory() {
+        return history;
+    }
+
+    public Contact getReceiver() {
+        return receiver;
+    }
+
+    public boolean connect(Contact contact) throws IOException, SQLException {
         if (contact == null) return false;
         this.receiver = contact;
 
-        if (!senderHandshake()) return false;
-
-        loadHistory();
+        if (!senderHandshake()) {
+            return false;
+        }
 
         initConnection();
+
+        loadHistory();
 
         return true;
     }
 
-    private boolean senderHandshake() {
-        try (Socket socket = new Socket(receiver.getIp(), Constant.chatHandshakePort)) {
+    private boolean senderHandshake() throws IOException {
+        try (Socket socket = new Socket(receiver.getIp(), Constant.CHAT_HANDSHAKE_PORT)) {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 
             // Send user details to display who is trying to connect
-            String userDetails = sender.getId() + ":" + sender.getUserName() + ":" + Inet4Address.getLocalHost().getHostAddress();
+            String userDetails = sender.getId() + ":" + sender.getUserName() + ":" + Address.getLocalIp();
             out.println(userDetails);
 
             // Receive decision signal
-            if (in.readLine().equals(Constant.refuseSignal)) return false;
-        } catch (UnknownHostException e) {
+            if (in.readLine().equals(Constant.REFUSED)) return false;
+        } catch (ConnectException | UnknownHostException ignored) {
             return false;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return true;
     }
 
-    private void loadHistory() {
+    private void loadHistory() throws SQLException {
         HistoryDataBase.initialization(receiver.getId(), database);
         history = HistoryDataBase.getHistoryFromDatabase(receiver.getId(), database);
     }
 
     private void initConnection() throws IOException {
-        senderSocket = new Socket(receiver.getIp(), Constant.chatPort);
+        senderSocket = new Socket(receiver.getIp(), Constant.CHAT_PORT);
         in = new BufferedReader(new InputStreamReader(senderSocket.getInputStream()));
         out = new PrintWriter(senderSocket.getOutputStream(), true);
     }
@@ -100,7 +109,7 @@ public class ChatSender {
         out.println(readyMessage);
     }
 
-    public String receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         // Needs to be on it's own thread and in a loop
         String receivedMessage = in.readLine();
         if (receivedMessage == null) return null;
@@ -112,15 +121,17 @@ public class ChatSender {
 
         history.add(new History(senderUserName, messageDateTime, encryptedMessage));
 
-        return Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
+        String decryptedMessage = Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
+
+        return new History(senderUserName, messageDateTime, decryptedMessage);
+    }
+
+    public void saveChat() throws SQLException {
+        HistoryDataBase.addIntoDatabase(receiver.getId(), history, database);
     }
 
     public void closeSession() throws IOException {
-        HistoryDataBase.addIntoDatabase(receiver.getId(), history, database);
-
-        if (receiver != null) receiver = null;
+        //if (receiver != null) receiver = null;
         if (senderSocket != null) senderSocket.close();
-        if (in != null) in.close();
-        if (out != null) out.close();
     }
 }

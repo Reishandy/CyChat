@@ -1,5 +1,6 @@
 package logic.network;
 
+import gui.dialog.Error;
 import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.History;
@@ -11,6 +12,7 @@ import logic.storage.HistoryDataBase;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,6 +22,7 @@ import java.net.Socket;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -27,21 +30,19 @@ import java.util.ArrayList;
 import static logic.network.Exchange.decisionHandler;
 
 public class ChatReceiver {
-    String database;
-    boolean isConnected;
-    ArrayList<History> history;
-    User receiver;
-    Contact sender;
-    ContactManager contactManager;
-    ServerSocket receiverSocket;
-    Socket senderSocket;
-    BufferedReader in;
-    PrintWriter out;
-    Thread receiverHandshakeListenerThread;
+    private final String database;
+    private  ArrayList<History> history;
+    private final User receiver;
+    private Contact sender;
+    private final ContactManager contactManager;
+    private ServerSocket receiverSocket;
+    private Socket senderSocket;
+    private BufferedReader in;
+    private PrintWriter out;
+    private final JFrame frame;
 
-    public ChatReceiver(User user, ContactManager contactManager, String database) {
+    public ChatReceiver(User user, ContactManager contactManager, String database, JFrame frame) {
         this.database = database;
-        isConnected = false;
         history = new ArrayList<>();
         receiver = user;
         sender = null;
@@ -50,58 +51,58 @@ public class ChatReceiver {
         senderSocket = null;
         in = null;
         out = null;
-        receiverHandshakeListenerThread = new Thread(this::receiverHandshakeListener);
-        receiverHandshakeListenerThread.start();
+        this.frame = frame;
     }
 
-    private void receiverHandshakeListener() {
-        try (ServerSocket serverSocket = new ServerSocket(Constant.chatHandshakePort)) {
-            Socket clientSocket = null;
-            BufferedReader in = null;
-            PrintWriter out = null;
+    public ArrayList<History> getHistory() {
+        return history;
+    }
 
-            while (!Thread.currentThread().isInterrupted()) {
-                if (isConnected) continue;
+    public Contact getSender() {
+        return sender;
+    }
 
-                clientSocket = serverSocket.accept();
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                out = new PrintWriter(clientSocket.getOutputStream(), true);
+    public boolean receiverHandshakeListener(){
+        boolean accepted = false;
+        try (ServerSocket serverSocket = new ServerSocket(Constant.CHAT_HANDSHAKE_PORT)) {
+            Socket clientSocket = serverSocket.accept();
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-                // Receive userDetails
-                String[] userDetails = in.readLine().split(":");
-                String senderId = userDetails[0];
-                String senderUserName = userDetails[1];
-                String senderIpAddress = userDetails[2];
+            // Receive userDetails
+            String[] userDetails = in.readLine().split(":");
+            String senderId = userDetails[0];
+            String senderUserName = userDetails[1];
+            String senderIpAddress = userDetails[2];
 
-                // Decision and send signal
-                boolean decision = decisionHandler(senderUserName, senderIpAddress, "chat connection");
-                if (decision) {
-                    out.println(Constant.acceptSignal);
-                    isConnected = true;
-                    sender = contactManager.getContact(senderId);
+            // Decision and send signal
+            boolean decision = decisionHandler(senderUserName, senderIpAddress, "chat connection", frame);
+            if (decision) {
+                out.println(Constant.ACCEPTED);
+                sender = contactManager.getContact(senderId);
 
-                    loadHistory();
-                    initConnection();
-                } else {
-                    out.println(Constant.refuseSignal);
-                }
+                initConnection();
+                loadHistory();
+
+                accepted = true;
+            } else {
+                out.println(Constant.REFUSED);
             }
-
-            if (clientSocket != null) clientSocket.close();
-            if (in != null) in.close();
-            if (out != null) out.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | SQLException e) {
+            Error dialog = new Error(new JFrame(), e);
+            dialog.display();
         }
+
+        return accepted;
     }
 
-    private void loadHistory() throws IOException {
+    private void loadHistory() throws IOException, SQLException {
         HistoryDataBase.initialization(sender.getId(), database);
         history = HistoryDataBase.getHistoryFromDatabase(sender.getId(), database);
     }
 
     private void initConnection() throws IOException {
-        receiverSocket = new ServerSocket(Constant.chatPort);
+        receiverSocket = new ServerSocket(Constant.CHAT_PORT);
         senderSocket = receiverSocket.accept();
         in = new BufferedReader(new InputStreamReader(senderSocket.getInputStream()));
         out = new PrintWriter(senderSocket.getOutputStream(), true);
@@ -121,7 +122,7 @@ public class ChatReceiver {
         out.println(readyMessage);
     }
 
-    public String receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         // Needs to be on it's own thread and in a loop
         String receivedMessage = in.readLine();
         if (receivedMessage == null) return null;
@@ -133,21 +134,17 @@ public class ChatReceiver {
 
         history.add(new History(senderUserName, messageDateTime, encryptedMessage));
 
-        return Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
+        String decryptedMessage = Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
+
+        return new History(senderUserName, messageDateTime, decryptedMessage);
+    }
+
+    public void saveChat() throws SQLException {
+        HistoryDataBase.addIntoDatabase(sender.getId(), history, database);
     }
 
     public void closeSession() throws IOException {
-        HistoryDataBase.addIntoDatabase(sender.getId(), history, database);
-
-        isConnected = false;
-        if (sender != null) sender = null;
+        //if (sender != null) sender = null;
         if (senderSocket != null) senderSocket.close();
-        if (senderSocket != null) senderSocket.close();
-        if (in != null) in.close();
-        if (out != null) out.close();
-    }
-
-    public void closeListener() {
-        if (receiverHandshakeListenerThread != null) receiverHandshakeListenerThread.interrupt();
     }
 }

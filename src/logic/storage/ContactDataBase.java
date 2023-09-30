@@ -11,11 +11,12 @@ import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.ArrayList;
 
 public class ContactDataBase {
-    public static void initialization(String database) {
+    public static void initialization(String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -35,7 +36,7 @@ public class ContactDataBase {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         } finally {
             try {
                 if (preparedStatement != null)
@@ -43,12 +44,12 @@ public class ContactDataBase {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }
 
-    public static void addIntoDatabase(Contact contact, User user, String database) {
+    public static void addIntoDatabase(Contact contact, User user, String database) throws SQLException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -70,9 +71,8 @@ public class ContactDataBase {
             preparedStatement.setString(6, encryptedPublicKey);
             preparedStatement.executeUpdate();
 
-        } catch (SQLException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new SQLException(e);
         } finally {
             try {
                 if (preparedStatement != null)
@@ -80,12 +80,12 @@ public class ContactDataBase {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }
 
-    public static ArrayList<Contact> getContactFromDatabase(User user, String database) {
+    public static ArrayList<Contact> getContactFromDatabase(User user, String database) throws SQLException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, InvalidKeySpecException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -114,16 +114,15 @@ public class ContactDataBase {
             }
 
             return contacts;
-        } catch (SQLException | NoSuchAlgorithmException | InvalidAlgorithmParameterException | NoSuchPaddingException |
-                 IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new SQLException(e);
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (preparedStatement != null) preparedStatement.close();
                 if (connection != null) connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }

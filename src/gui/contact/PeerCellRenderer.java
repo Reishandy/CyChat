@@ -1,6 +1,5 @@
 package gui.contact;
 
-import logic.data.Contact;
 import logic.data.Peer;
 
 import javax.swing.*;
@@ -48,7 +47,7 @@ class PeerCellRenderer extends JPanel implements ListCellRenderer<Peer> {
     }
 
     public Component getListCellRendererComponent(JList list, Peer peer, int index, boolean isSelected, boolean cellHasFocus) {
-        idLabel.setText(peer.id());
+        idLabel.setText(peer.id().substring(0, 6));
         usernameLabel.setText(peer.userName());
         ipLabel.setText(peer.ip());
 

@@ -2,21 +2,23 @@ package logic;
 
 import logic.data.Constant;
 import logic.data.Contact;
+import logic.data.History;
 import logic.data.User;
 import logic.manager.ContactManager;
+import logic.network.Address;
 import logic.network.ChatReceiver;
 import logic.network.ChatSender;
+import logic.security.Crypto;
+import logic.security.KeyString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.Crypto;
-import logic.security.KeyString;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.*;
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.InvalidAlgorithmParameterException;
@@ -28,7 +30,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,6 +42,7 @@ public class FullChatSequenceTest {
     ContactManager receiverContactManager;
     ChatSender chatSender;
     ChatReceiver chatReceiver;
+    Thread chatListenerThread;
 
     @AfterEach
     void clear() throws SQLException {
@@ -57,7 +59,7 @@ public class FullChatSequenceTest {
     }
 
     @BeforeEach
-    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException {
+    void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException, UnknownHostException, SocketException {
         database = "jdbc:sqlite:test.db";
         senderName = "Cat";
         receiverName = "Dog";
@@ -67,22 +69,27 @@ public class FullChatSequenceTest {
         message1 = "Water is better than Fire!";
         message2 = "No!! Fire is way better that Water";
 
-        aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+        aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
         ivString = KeyString.IvToString(Crypto.generateIv());
 
         sender = new User(senderName, senderPassword);
         receiver = new User(receiverName, receiverPassword);
         senderContact = new Contact(sender.getId(), senderName, KeyString.PublicKeyToString(sender.getPublicKey()), aesKeyString, ivString);
         receiverContact = new Contact(receiver.getId(), receiverName, KeyString.PublicKeyToString(receiver.getPublicKey()), aesKeyString, ivString);
-        senderContact.setIp(Inet4Address.getLocalHost().getHostAddress());
-        receiverContact.setIp(Inet4Address.getLocalHost().getHostAddress());
+        senderContact.setIp(Address.getLocalIp());
+        receiverContact.setIp(Address.getLocalIp());
 
 
         receiverContactManager = new ContactManager();
         receiverContactManager.addContact(senderContact);
 
         chatSender = new ChatSender(sender, database);
-        chatReceiver = new ChatReceiver(receiver, receiverContactManager, database);
+        chatReceiver = new ChatReceiver(receiver, receiverContactManager, database, new JFrame());
+
+        chatListenerThread = new Thread(() -> {
+            chatReceiver.receiverHandshakeListener();
+        });
+        chatListenerThread.start();
     }
 
     @Test
@@ -105,10 +112,10 @@ public class FullChatSequenceTest {
             Runnable receiveMessageTask = () -> {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        String receivedMessage = chatSender.receive();
+                        History receivedMessage = chatSender.receive();
                         if (receivedMessage == null) continue;
 
-                        receivedMessageSender.add(receivedMessage);
+                        receivedMessageSender.add(receivedMessage.message());
                     } catch (SocketException e) {
                         return;
                     } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException |
@@ -128,10 +135,11 @@ public class FullChatSequenceTest {
             assertEquals(message2, receivedMessageSender.get(0));
 
             revieveMessageThread.interrupt();
+            chatSender.saveChat();
             chatSender.closeSession();
 
         } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                 NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+                 NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
             fail("No errors should be thrown");
         }
 
@@ -145,10 +153,10 @@ public class FullChatSequenceTest {
             Runnable receiveMessageTask = () -> {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        String receivedMessage = chatReceiver.receive();
+                        History receivedMessage = chatReceiver.receive();
                         if (receivedMessage == null) continue;
 
-                        receivedMessageReceiver.add(receivedMessage);
+                        receivedMessageReceiver.add(receivedMessage.message());
                     } catch (SocketException e) {
                         return;
                     } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException |
@@ -168,12 +176,12 @@ public class FullChatSequenceTest {
             assertEquals(message1, receivedMessageReceiver.get(0));
 
             revieveMessageThread.interrupt();
+            chatReceiver.saveChat();
             chatReceiver.closeSession();
-            chatReceiver.closeListener();
 
         } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
                  NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | InterruptedException |
-                 IOException e) {
+                 IOException | SQLException e) {
             fail("No errors should be thrown");
         }
     }

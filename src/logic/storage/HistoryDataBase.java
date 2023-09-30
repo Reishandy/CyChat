@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class HistoryDataBase {
-    public static void initialization(String id, String database) {
+    public static void initialization(String id, String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -27,7 +27,7 @@ public class HistoryDataBase {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         } finally {
             try {
                 if (preparedStatement != null)
@@ -35,12 +35,12 @@ public class HistoryDataBase {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }
 
-    public static void addIntoDatabase(String id, ArrayList<History> histories, String database) {
+    public static void addIntoDatabase(String id, ArrayList<History> histories, String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -61,7 +61,7 @@ public class HistoryDataBase {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         } finally {
             try {
                 if (preparedStatement != null)
@@ -69,12 +69,12 @@ public class HistoryDataBase {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }
 
-    public static ArrayList<History> getHistoryFromDatabase(String id, String database) {
+    public static ArrayList<History> getHistoryFromDatabase(String id, String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -100,14 +100,14 @@ public class HistoryDataBase {
 
             return histories;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (preparedStatement != null) preparedStatement.close();
                 if (connection != null) connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }

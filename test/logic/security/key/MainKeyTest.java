@@ -1,8 +1,8 @@
 package logic.security.key;
 
+import logic.security.Hash;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.Hash;
 
 import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;

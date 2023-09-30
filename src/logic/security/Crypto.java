@@ -14,33 +14,33 @@ import java.util.Base64;
 
 public class Crypto {
     public static SecretKey generateAESKey(int bit) throws NoSuchAlgorithmException {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(Constant.algorithmAES);
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(Constant.ALGORITHM_AES);
         keyGenerator.init(bit);
         return keyGenerator.generateKey();
     }
 
     public static KeyPair generateRSAKey() throws NoSuchAlgorithmException {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance(Constant.algorithmRSA);
-        generator.initialize(Constant.keySizeRSA);
+        KeyPairGenerator generator = KeyPairGenerator.getInstance(Constant.ALGORITHM_RSA);
+        generator.initialize(Constant.KEY_SIZE_RSA);
         return generator.generateKeyPair();
     }
 
     public static SecretKey generateMainKey(String password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, Constant.mainKeyIteration, Constant.keySizeAES256);
+        KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, Constant.MAIN_KEY_ITERATION, Constant.KEY_SIZE_AES_256);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         SecretKey secretKey = keyFactory.generateSecret(keySpec);
         return new SecretKeySpec(secretKey.getEncoded(), "AES");
     }
 
     public static IvParameterSpec generateIv() {
-        byte[] iv = new byte[Constant.bit16];
+        byte[] iv = new byte[Constant.BIT_16];
         new SecureRandom().nextBytes(iv);
         return new IvParameterSpec(iv);
     }
 
     public static byte[] generateSalt() throws NoSuchAlgorithmException {
         SecureRandom random = SecureRandom.getInstanceStrong();
-        byte[] salt = new byte[Constant.bit16];
+        byte[] salt = new byte[Constant.BIT_16];
         random.nextBytes(salt);
         return salt;
     }
@@ -49,7 +49,7 @@ public class Crypto {
             NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
-        Cipher cipher = Cipher.getInstance(Constant.algorithmAESCBC);
+        Cipher cipher = Cipher.getInstance(Constant.AES_CFB_PKCS_5_PADDING);
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
         byte[] cipherText = cipher.doFinal(plainText.getBytes());
         return Base64.getEncoder().encodeToString(cipherText);
@@ -59,7 +59,7 @@ public class Crypto {
             NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
 
-        Cipher cipher = Cipher.getInstance(Constant.algorithmAESCBC);
+        Cipher cipher = Cipher.getInstance(Constant.AES_CFB_PKCS_5_PADDING);
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
         byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(cipherText));
         return new String(plainText);
@@ -69,7 +69,7 @@ public class Crypto {
             NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException,
             BadPaddingException {
 
-        Cipher encryptCipher = Cipher.getInstance(Constant.algorithmRSA);
+        Cipher encryptCipher = Cipher.getInstance(Constant.ALGORITHM_RSA);
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] plainTextBytes = plainText.getBytes(StandardCharsets.UTF_8);
         byte[] cipherTextBytes = encryptCipher.doFinal(plainTextBytes);
@@ -80,7 +80,7 @@ public class Crypto {
             NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, IllegalBlockSizeException,
             BadPaddingException {
 
-        Cipher decryptCipher = Cipher.getInstance(Constant.algorithmRSA);
+        Cipher decryptCipher = Cipher.getInstance(Constant.ALGORITHM_RSA);
         decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] plainText = decryptCipher.doFinal(Base64.getDecoder().decode(cipherText));
         return new String(plainText);

@@ -22,7 +22,7 @@ public class KeyString {
 
     public static SecretKey StringToSecretKey(String encodedKey) {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
-        return new SecretKeySpec(decodedKey, 0, decodedKey.length, Constant.algorithmAES);
+        return new SecretKeySpec(decodedKey, 0, decodedKey.length, Constant.ALGORITHM_AES);
     }
 
     public static String IvToString(IvParameterSpec iv) {
@@ -48,14 +48,10 @@ public class KeyString {
         return Base64.getEncoder().encodeToString(rawKey);
     }
 
-    public static PublicKey StringToPublicKey(String encodedKey) {
+    public static PublicKey StringToPublicKey(String encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance(Constant.algorithmRSA);
-            return keyFactory.generatePublic(new X509EncodedKeySpec(decodedKey));
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
-        }
+        KeyFactory keyFactory = KeyFactory.getInstance(Constant.ALGORITHM_RSA);
+        return keyFactory.generatePublic(new X509EncodedKeySpec(decodedKey));
     }
 
     public static String PrivateKeyToString(PrivateKey key) {
@@ -63,13 +59,9 @@ public class KeyString {
         return Base64.getEncoder().encodeToString(rawKey);
     }
 
-    public static PrivateKey StringToPrivateKey(String encodedKey) {
+    public static PrivateKey StringToPrivateKey(String encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] decodedKey = Base64.getDecoder().decode(encodedKey);
-        try {
-            KeyFactory keyFactory = KeyFactory.getInstance(Constant.algorithmRSA);
-            return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
-        }
+        KeyFactory keyFactory = KeyFactory.getInstance(Constant.ALGORITHM_RSA);
+        return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(decodedKey));
     }
 }

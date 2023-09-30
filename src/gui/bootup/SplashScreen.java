@@ -1,24 +1,83 @@
 package gui.bootup;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import gui.chat.ChatGUI;
+import gui.dialog.Error;
 import logic.data.Constant;
 import logic.data.User;
+import logic.manager.ContactManager;
+import logic.manager.PeerManager;
+import logic.network.ChatReceiver;
+import logic.network.ChatSender;
 import logic.storage.DataBase;
 import logic.storage.UserDataBase;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class SplashScreen {
     public static User user;
-
-    private static JFrame frame;
+    public static JFrame frame;
     private JPanel splashScreen;
 
+    public static Thread broadcastListenerThread = null;
+    public static Thread exchangeListenerThread = null;
+    public static Thread chatListenerThread = null;
+    public static ChatSender chatSender = null;
+    public static ChatReceiver chatReceiver = null;
+    public static ContactManager contactManager = null;
+    public static PeerManager peerManager = null;
+
     public static void main(String[] args) throws IOException, InterruptedException {
+        // Set up theme
+        setUpTheme();
+
+        // Set up application (JFrame)
+        frame = new JFrame("CyChat");
+        frame.setContentPane(new SplashScreen().splashScreen);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setPreferredSize(new Dimension(540, 720));
+        frame.setResizable(false);
+        frame.pack();
+        frame.setVisible(true);
+
         // Load fonts
+        loadFonts();
+
+        // Set up logo
+        ImageIcon logoIconGif = new ImageIcon(Objects.requireNonNull(SplashScreen.class.getResource("/CyChat.gif")));
+        JLabel logoLabel = new JLabel(logoIconGif);
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        frame.getContentPane().setLayout(new GridBagLayout());
+        frame.getContentPane().add(logoLabel, constraints);
+        frame.getContentPane().setBackground(Color.WHITE);
+        frame.pack();
+
+        // boot up sequence
+        boolean tableEmpty = true;
+        try {
+            UserDataBase.initialization(DataBase.getDataBasePath());
+            tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
+        } catch (SQLException e) {
+            Error dialog = new Error(SplashScreen.frame, e);
+            dialog.display();
+        }
+
+        //Thread.sleep(5000);
+
+        if (tableEmpty) {
+            changePanel(Register.getRegister());
+        } else {
+            changePanel(Login.getLogin());
+        }
+    }
+
+    private static void loadFonts() {
         try {
             Font barlowExtraBold = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(SplashScreen.class.getResourceAsStream("/Barlow-ExtraBold.ttf")));
             Font barlowMedium = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(SplashScreen.class.getResourceAsStream("/Barlow-Medium.ttf")));
@@ -27,11 +86,12 @@ public class SplashScreen {
             ge.registerFont(barlowExtraBold);
             ge.registerFont(barlowMedium);
         } catch (FontFormatException | IOException e) {
-            throw new RuntimeException(e);
+            Error dialog = new Error(frame, e);
+            dialog.display();
         }
+    }
 
-
-        // Set up theme
+    private static void setUpTheme() {
         try {
             UIManager.setLookAndFeel( new FlatIntelliJLaf() );
             UIManager.put( "Button.arc", 999 );
@@ -47,40 +107,8 @@ public class SplashScreen {
             UIManager.put( "ScrollBar.track", Constant.SECONDARY_ACCENT_COLOR);
         } catch (
                 UnsupportedLookAndFeelException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Set up application (JFrame)
-        frame = new JFrame("CyChat");
-        frame.setContentPane(new SplashScreen().splashScreen);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setPreferredSize(new Dimension(540, 720));
-        frame.setResizable(false);
-        frame.pack();
-        frame.setVisible(true);
-
-        // Set up logo
-        ImageIcon logoIconGif = new ImageIcon(Objects.requireNonNull(SplashScreen.class.getResource("/CyChat.gif")));
-        JLabel logoLabel = new JLabel(logoIconGif);
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        frame.getContentPane().setLayout(new GridBagLayout());
-        frame.getContentPane().add(logoLabel, constraints);
-        frame.getContentPane().setBackground(Color.WHITE);
-        frame.pack();
-
-        // boot up sequence
-        UserDataBase.initialization(DataBase.getDataBasePath());
-        boolean tableEmpty = UserDataBase.tableIsEmpty(DataBase.getDataBasePath());
-
-
-        //Thread.sleep(5000);
-
-        if (tableEmpty) {
-            changePanel(Register.getRegister());
-        } else {
-            changePanel(Login.getLogin());
+            Error dialog = new Error(frame, e);
+            dialog.display();
         }
     }
 

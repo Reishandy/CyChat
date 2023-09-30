@@ -1,11 +1,11 @@
 package logic.security.key;
 
 import logic.data.Constant;
-import org.junit.jupiter.api.Test;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import org.junit.jupiter.api.Test;
 
-import java.security.*;
+import java.security.NoSuchAlgorithmException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,7 +32,7 @@ class AESTest {
     @Test
     void testInitializationWithString() {
         try {
-            String keyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+            String keyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
             String ivString = KeyString.IvToString(Crypto.generateIv());
 
             aes = new AES(keyString, ivString);

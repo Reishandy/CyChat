@@ -1,6 +1,7 @@
 package logic.manager;
 
 import logic.data.Contact;
+import logic.data.Peer;
 
 import java.util.ArrayList;
 
@@ -44,5 +45,10 @@ public class ContactManager {
 
     public ArrayList<Contact> getContacts() {
         return contacts;
+    }
+
+    public Peer getLatestAddedPeer() {
+        Contact lastContact = contacts.get(contacts.size() - 1);
+        return new Peer(lastContact.getId(), lastContact.getUserName(), lastContact.getIp());
     }
 }

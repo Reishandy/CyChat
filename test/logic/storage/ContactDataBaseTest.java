@@ -3,12 +3,17 @@ package logic.storage;
 import logic.data.Constant;
 import logic.data.Contact;
 import logic.data.User;
+import logic.security.Crypto;
+import logic.security.KeyString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import logic.security.Crypto;
-import logic.security.KeyString;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
@@ -39,7 +44,7 @@ class ContactDataBaseTest {
             String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Dog";
             String ivString = KeyString.IvToString(Crypto.generateIv());
-            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
             String publicKeyString = KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic());
 
             User user = new User("Cat", "I like cat");
@@ -58,7 +63,9 @@ class ContactDataBaseTest {
             assertEquals(contactGet.getIvString(), contact.getIvString());
             assertEquals(contactGet.getPublicKeyString(), contact.getPublicKeyString());
 
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | SQLException |
+                 InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+                 BadPaddingException | InvalidKeyException e) {
             fail("No errors should be thrown");
         }
 

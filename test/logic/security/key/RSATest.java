@@ -1,14 +1,15 @@
 package logic.security.key;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import org.junit.jupiter.api.Test;
 import logic.security.Crypto;
 import logic.security.KeyString;
+import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RSATest {
     private RSA rsa;
@@ -32,8 +33,8 @@ public class RSATest {
             rsa = new RSA(KeyString.PublicKeyToString(publicKey), KeyString.PrivateKeyToString(privateKey));
             assertEquals(publicKey, rsa.getPublicKey(), "Setting public key string failed");
             assertEquals(privateKey, rsa.getPrivateKey(), "Setting private key string failed");
-        } catch (NoSuchAlgorithmException e) {
-            fail("NoSuchAlgorithmException should not be thrown");
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            fail("No error should not be thrown");
         }
     }
 }

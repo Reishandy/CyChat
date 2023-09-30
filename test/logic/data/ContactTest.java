@@ -5,6 +5,7 @@ import logic.security.KeyString;
 import org.junit.jupiter.api.Test;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +19,7 @@ class ContactTest {
             String id = "CyChat_" + UUID.randomUUID().toString().replaceAll("-", "_");
             String userName = "Cat";
             String publicKeyString = KeyString.PublicKeyToString(Crypto.generateRSAKey().getPublic());
-            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.keySizeAES128));
+            String aesKeyString = KeyString.SecretKeyToString(Crypto.generateAESKey(Constant.KEY_SIZE_AES_128));
             String ivString = KeyString.IvToString(Crypto.generateIv());
             contact = new Contact(id, userName, publicKeyString, aesKeyString, ivString);
 
@@ -34,10 +35,10 @@ class ContactTest {
             assertEquals(contact.getPublicKeyString(), publicKeyString);
             assertEquals(contact.getAESKeyString(), aesKeyString);
             assertEquals(contact.getIvString(), ivString);
-            assertEquals(contact.getIp(), "192.168.0.0");
+            assertEquals(contact.getIp(), "NONE");
 
             ipTest();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             fail("NoSuchAlgorithmException should not be thrown");
         }
     }

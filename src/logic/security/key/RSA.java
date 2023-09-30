@@ -7,6 +7,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 public class RSA {
     private final PublicKey publicKey;
@@ -21,14 +22,14 @@ public class RSA {
         privateKeyString = KeyString.PrivateKeyToString(privateKey);
     }
 
-    public RSA(String publicKeyString, String privateKeyString) {
+    public RSA(String publicKeyString, String privateKeyString) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.publicKeyString = publicKeyString;
         this.privateKeyString = privateKeyString;
         this.privateKey = KeyString.StringToPrivateKey(privateKeyString);
         this.publicKey = KeyString.StringToPublicKey(publicKeyString);
     }
 
-    public RSA(String publicKeyString) {
+    public RSA(String publicKeyString) throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.publicKeyString = publicKeyString;
         this.publicKey = KeyString.StringToPublicKey(publicKeyString);
         this.privateKey = null;
@@ -40,7 +41,6 @@ public class RSA {
     }
 
     public PrivateKey getPrivateKey() {
-        if (privateKey == null) return null;
         return privateKey;
     }
 
@@ -49,7 +49,6 @@ public class RSA {
     }
 
     public String getPrivateKeyString() {
-        if (privateKeyString == null) return null;
         return privateKeyString;
     }
 }

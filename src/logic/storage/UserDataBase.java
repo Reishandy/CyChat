@@ -15,7 +15,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 
 public class UserDataBase {
-    public static void initialization(String database) {
+    public static void initialization(String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -36,7 +36,7 @@ public class UserDataBase {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         } finally {
             try {
                 if (preparedStatement != null)
@@ -44,12 +44,12 @@ public class UserDataBase {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }
 
-    public static void addIntoDatabase(User user, String database) {
+    public static void addIntoDatabase(User user, String database) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
@@ -74,9 +74,8 @@ public class UserDataBase {
             preparedStatement.setString(7, encryptedPublicKey);
             preparedStatement.executeUpdate();
 
-        } catch (SQLException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                 InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new SQLException(e);
         } finally {
             try {
                 if (preparedStatement != null)
@@ -84,12 +83,12 @@ public class UserDataBase {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
     }
 
-    public static User getUserFromDatabase(String userNameInput, String passwordInput, String database) {
+    public static User getUserFromDatabase(String userNameInput, String passwordInput, String database) throws SQLException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, InvalidKeySpecException, BadPaddingException, InvalidKeyException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -112,28 +111,30 @@ public class UserDataBase {
 
                 // This is not a good way to do it but i dont know what else
                 // Straight checking which user is correct when getting the database
-                if (userName.equals(userNameInput) && Hash.checkPassword(passwordInput, userNameInput, hashedPassword)) {
-                    user = new User(userId, userName, passwordInput, hashedPassword, saltString, ivString, encryptedPublicKeyString, encryptedPrivateKeyString);
+                if (userName.equals(userNameInput)) {
+                    if (Hash.checkPassword(passwordInput, userNameInput, hashedPassword)) {
+                        user = new User(userId, userName, passwordInput, hashedPassword, saltString, ivString, encryptedPublicKeyString, encryptedPrivateKeyString);
+                    } else {
+                        throw new BadPaddingException();
+                    }
                 }
             }
             return user;
-        } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException |
-                 InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
-                 BadPaddingException | InvalidKeyException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new SQLException(e);
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (preparedStatement != null) preparedStatement.close();
                 if (connection != null) connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
             passwordInput = null;
         }
     }
 
-    public static boolean tableIsEmpty(String database) {
+    public static boolean tableIsEmpty(String database) throws SQLException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -149,14 +150,14 @@ public class UserDataBase {
                 rowCount = resultSet.getInt(1);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLException(e);
         } finally {
             try {
                 if (resultSet != null) resultSet.close();
                 if (preparedStatement != null) preparedStatement.close();
                 if (connection != null) connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new SQLException(e);
             }
         }
 
