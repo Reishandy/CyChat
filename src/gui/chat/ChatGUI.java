@@ -77,29 +77,13 @@ public class ChatGUI {
             boolean result = dialog.getResult();
 
             if (result) {
-                try {
-                    if (isSender) {
-                        SplashScreen.chatSender.closeSession();
-                    } else {
-                        SplashScreen.chatReceiver.closeSession();
-                    }
-                } catch (IOException ex) {
-                    Error dialog2 = new Error(SplashScreen.frame, ex);
-                    dialog2.display();
-                }
-
-                sendMessage(Constant.CLOSE_SIGNAL);
-                messageRecieverThread.interrupt();
-
-                // TODO: temp fix
-                SplashScreen.chatSender = null;
-                SplashScreen.chatReceiver = null;
-
-                SplashScreen.changePanel(ContactGUI.getContact());
+                sendMessage(Constant.CLOSE_SIGNAL); // TODO: check this
             }
         });
 
-        // TODO: fix cannot contact again after coming back
+        // TODO: fix cannot contact again after coming back (receiver instantly disconnect, partner disconnected)
+        //      for now it works with a second reconnect but nor more... maybe it will be fixed with the TCP issue
+        //      too? i hope so...
     }
 
     private void loadChatHistory() {
@@ -145,6 +129,8 @@ public class ChatGUI {
             dialog.display();
         }
 
+        if (message.equals(Constant.CLOSE_SIGNAL)) return;
+
         addUserBubble(messageToSend);
     }
 
@@ -154,11 +140,15 @@ public class ChatGUI {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         History receivedMessage = SplashScreen.chatSender.receive();
-                        if (receivedMessage.message().equals(Constant.CLOSE_SIGNAL)) kickedOut();
+
+                        if (receivedMessage.message().equals(Constant.CLOSE_SIGNAL)) {
+                            throw new IOException("For exiting");
+                        }
+
                         addPartnerBubble(receivedMessage);
                     } catch (NullPointerException | IOException e) {
                         // Exit because partner exited
-                        kickedOut();
+                        exit();
                         break;
                     } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
                              NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
@@ -172,11 +162,15 @@ public class ChatGUI {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
                         History receivedMessage = SplashScreen.chatReceiver.receive();
-                        if (receivedMessage.message().equals(Constant.CLOSE_SIGNAL)) kickedOut();
+
+                        if (receivedMessage.message().equals(Constant.CLOSE_SIGNAL)) {
+                            throw new IOException("For exiting");
+                        }
+
                         addPartnerBubble(receivedMessage);
                     } catch (NullPointerException | IOException e) {
                         // Exit because partner exited
-                        kickedOut();
+                        exit();
                         break;
                     }catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
                              NoSuchAlgorithmException | BadPaddingException | InvalidKeyException | SQLException e) {
@@ -245,7 +239,7 @@ public class ChatGUI {
         messageArea.setLineWrap(true);
         messageArea.setWrapStyleWord(true);
         messageArea.setEditable(false);
-        messageArea.setBackground(Color.WHITE);
+        messageArea.setForeground(Color.WHITE);
 
         // Create bubble
         JPanel bubble = new JPanel();
@@ -282,7 +276,7 @@ public class ChatGUI {
         return bubble;
     }
 
-    private void kickedOut() {
+    private void exit() {
         try {
             if (isSender) {
                 SplashScreen.chatSender.closeSession();
@@ -296,12 +290,11 @@ public class ChatGUI {
 
         messageRecieverThread.interrupt();
 
-        // TODO: temp fix
-        SplashScreen.chatSender = null;
-        SplashScreen.chatReceiver = null;
+        new RefusedDialog(SplashScreen.frame, "Disconnected").display();
 
-        new RefusedDialog(SplashScreen.frame, "Partner Disconnected").display();
-        SplashScreen.changePanel(ContactGUI.getContact());
+        // TODO: temp fix, im tired. changing to splashscreen
+        System.exit(1);
+        // SplashScreen.changePanel(ContactGUI.getContact());
     }
 
     public static JPanel getChatPanel() {

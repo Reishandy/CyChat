@@ -53,7 +53,7 @@ public class ChatSender {
     }
 
     public boolean connect(Contact contact) throws IOException, SQLException {
-        if (contact == null) return false;
+        if (this.receiver != null) return false;
         this.receiver = contact;
 
         if (!senderHandshake()) {
@@ -103,9 +103,10 @@ public class ChatSender {
         String encryptedMessage = Crypto.encryptAES(message, receiver.getAESKey(), receiver.getIv());
 
         History readyHistory = new History(sender.getUserName(), formattedDateTime, encryptedMessage);
+
         if (!message.equals(Constant.CLOSE_SIGNAL)) {
             history.add(readyHistory);
-            HistoryDataBase.addIntoDatabase(sender.getId(), readyHistory, database);
+            HistoryDataBase.addIntoDatabase(receiver.getId(), readyHistory, database);
         }
 
         String readyMessage = readyHistory.userName() + " // " + readyHistory.dateTime() + " // " + readyHistory.message();
@@ -121,18 +122,22 @@ public class ChatSender {
         String senderUserName = splitMessage[0];
         String messageDateTime = splitMessage[1];
         String encryptedMessage = splitMessage[2];
+        String decryptedMessage = Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
 
         History readyHistory = new History(senderUserName, messageDateTime, encryptedMessage);
-        history.add(readyHistory);
-        HistoryDataBase.addIntoDatabase(receiver.getId(), readyHistory, database);
 
-        String decryptedMessage = Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
+        if (!decryptedMessage.equals(Constant.CLOSE_SIGNAL)) {
+            history.add(readyHistory);
+            HistoryDataBase.addIntoDatabase(receiver.getId(), readyHistory, database);
+        }
 
         return new History(senderUserName, messageDateTime, decryptedMessage);
     }
 
     public void closeSession() throws IOException {
-        //if (receiver != null) receiver = null;
         if (senderSocket != null) senderSocket.close();
+        receiver = null;
+        in = null;
+        out = null;
     }
 }

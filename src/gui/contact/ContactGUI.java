@@ -74,7 +74,8 @@ public class ContactGUI {
         try {
             debug.setText(Address.getLocalIp() + " @ " + Address.getInterface());
             button1.addActionListener(e -> {
-               changeToChat();
+                new RefusedDialog(SplashScreen.frame, "Disconnected").display();
+               System.exit(1);
             });
         } catch (SocketException e) {
             Error dialog = new Error(SplashScreen.frame, e);
@@ -101,6 +102,8 @@ public class ContactGUI {
                 SplashScreen.chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
                 SplashScreen.chatReceiver = new ChatReceiver(user, SplashScreen.contactManager, DataBase.getDataBasePath(user.getId()),
                         SplashScreen.frame);
+            } else {
+                SplashScreen.chatReceiver.setContactManager(SplashScreen.contactManager);
             }
         } catch (IOException e) {
             Error dialog = new Error(SplashScreen.frame, e);

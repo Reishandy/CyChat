@@ -118,4 +118,8 @@ public class SplashScreen {
         frame.repaint();
         frame.revalidate();
     }
+
+    public static JPanel getSplashScreen() {
+        return new SplashScreen().splashScreen;
+    }
 }

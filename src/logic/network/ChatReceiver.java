@@ -34,7 +34,7 @@ public class ChatReceiver {
     private  ArrayList<History> history;
     private final User receiver;
     private Contact sender;
-    private final ContactManager contactManager;
+    private ContactManager contactManager;
     private ServerSocket receiverSocket;
     private Socket senderSocket;
     private BufferedReader in;
@@ -52,6 +52,10 @@ public class ChatReceiver {
         in = null;
         out = null;
         this.frame = frame;
+    }
+
+    public void setContactManager(ContactManager contactManager) {
+        this.contactManager = contactManager;
     }
 
     public ArrayList<History> getHistory() {
@@ -116,6 +120,7 @@ public class ChatReceiver {
         String encryptedMessage = Crypto.encryptAES(message, sender.getAESKey(), sender.getIv());
 
         History readyHistory = new History(receiver.getUserName(), formattedDateTime, encryptedMessage);
+
         if (!message.equals(Constant.CLOSE_SIGNAL)) {
             history.add(readyHistory);
             HistoryDataBase.addIntoDatabase(sender.getId(), readyHistory, database);
@@ -134,18 +139,25 @@ public class ChatReceiver {
         String senderUserName = splitMessage[0];
         String messageDateTime = splitMessage[1];
         String encryptedMessage = splitMessage[2];
+        String decryptedMessage = Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
 
         History readyHistory = new History(senderUserName, messageDateTime, encryptedMessage);
-        history.add(readyHistory);
-        HistoryDataBase.addIntoDatabase(sender.getId(), readyHistory, database);
 
-        String decryptedMessage = Crypto.decryptAES(encryptedMessage, sender.getAESKey(), sender.getIv());
+        if (!decryptedMessage.equals(Constant.CLOSE_SIGNAL)) {
+            history.add(readyHistory);
+            HistoryDataBase.addIntoDatabase(sender.getId(), readyHistory, database);
+        }
 
         return new History(senderUserName, messageDateTime, decryptedMessage);
     }
 
     public void closeSession() throws IOException {
-        //if (sender != null) sender = null;
         if (senderSocket != null) senderSocket.close();
+        if (receiverSocket != null) receiverSocket.close();
+        sender = null;
+        receiverSocket = null;
+        senderSocket = null;
+        in = null;
+        out = null;
     }
 }
