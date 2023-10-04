@@ -68,7 +68,7 @@ public class SplashScreen {
             dialog.display();
         }
 
-        //Thread.sleep(5000);
+        Thread.sleep(5000);
 
         if (tableEmpty) {
             changePanel(Register.getRegister());
