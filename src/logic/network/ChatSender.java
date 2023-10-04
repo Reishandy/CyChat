@@ -53,7 +53,7 @@ public class ChatSender {
     }
 
     public boolean connect(Contact contact) throws IOException, SQLException {
-        if (contact == null) return false;
+        if (this.receiver != null) return false;
         this.receiver = contact;
 
         if (!senderHandshake()) {
@@ -96,20 +96,24 @@ public class ChatSender {
     }
 
     public void send(String message) throws InvalidAlgorithmParameterException, NoSuchPaddingException,
-            IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+            IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         LocalDateTime currentDateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy/MM/dd - HH:mm");
         String formattedDateTime = currentDateTime.format(formatter);
         String encryptedMessage = Crypto.encryptAES(message, receiver.getAESKey(), receiver.getIv());
 
-        History readyHistory = new History(receiver.getUserName(), formattedDateTime, encryptedMessage);
-        history.add(readyHistory);
+        History readyHistory = new History(sender.getUserName(), formattedDateTime, encryptedMessage);
+
+        if (!message.equals(Constant.CLOSE_SIGNAL)) {
+            history.add(readyHistory);
+            HistoryDataBase.addIntoDatabase(receiver.getId(), readyHistory, database);
+        }
 
         String readyMessage = readyHistory.userName() + " // " + readyHistory.dateTime() + " // " + readyHistory.message();
         out.println(readyMessage);
     }
 
-    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+    public History receive() throws IOException, InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, SQLException {
         // Needs to be on it's own thread and in a loop
         String receivedMessage = in.readLine();
         if (receivedMessage == null) return null;
@@ -118,20 +122,22 @@ public class ChatSender {
         String senderUserName = splitMessage[0];
         String messageDateTime = splitMessage[1];
         String encryptedMessage = splitMessage[2];
-
-        history.add(new History(senderUserName, messageDateTime, encryptedMessage));
-
         String decryptedMessage = Crypto.decryptAES(encryptedMessage, receiver.getAESKey(), receiver.getIv());
+
+        History readyHistory = new History(senderUserName, messageDateTime, encryptedMessage);
+
+        if (!decryptedMessage.equals(Constant.CLOSE_SIGNAL)) {
+            history.add(readyHistory);
+            HistoryDataBase.addIntoDatabase(receiver.getId(), readyHistory, database);
+        }
 
         return new History(senderUserName, messageDateTime, decryptedMessage);
     }
 
-    public void saveChat() throws SQLException {
-        HistoryDataBase.addIntoDatabase(receiver.getId(), history, database);
-    }
-
     public void closeSession() throws IOException {
-        //if (receiver != null) receiver = null;
         if (senderSocket != null) senderSocket.close();
+        receiver = null;
+        in = null;
+        out = null;
     }
 }

@@ -120,7 +120,7 @@ public class FullChatSequenceTest {
                         return;
                     } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException |
                              IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
-                             InvalidKeyException e) {
+                             InvalidKeyException | SQLException e) {
                         fail("No errors should be thrown");
                     }}};
             Thread revieveMessageThread = new Thread(receiveMessageTask);
@@ -135,7 +135,6 @@ public class FullChatSequenceTest {
             assertEquals(message2, receivedMessageSender.get(0));
 
             revieveMessageThread.interrupt();
-            chatSender.saveChat();
             chatSender.closeSession();
 
         } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
@@ -161,7 +160,7 @@ public class FullChatSequenceTest {
                         return;
                     } catch (IOException | InvalidAlgorithmParameterException | NoSuchPaddingException |
                              IllegalBlockSizeException | NoSuchAlgorithmException | BadPaddingException |
-                             InvalidKeyException e) {
+                             InvalidKeyException | SQLException e) {
                         fail("No errors should be thrown");
                     }}};
             Thread revieveMessageThread = new Thread(receiveMessageTask);
@@ -176,7 +175,6 @@ public class FullChatSequenceTest {
             assertEquals(message1, receivedMessageReceiver.get(0));
 
             revieveMessageThread.interrupt();
-            chatReceiver.saveChat();
             chatReceiver.closeSession();
 
         } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |

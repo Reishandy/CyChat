@@ -62,7 +62,6 @@ public class Login {
                         userNameWarning.setText("User not found");
                     }
                 } catch (BadPaddingException ignored) {
-                    System.out.println("aaa");
                     passwordWarning.setText("Wrong password");
                 } catch (IOException | SQLException | InvalidAlgorithmParameterException | NoSuchPaddingException |
                          IllegalBlockSizeException | NoSuchAlgorithmException | InvalidKeySpecException |

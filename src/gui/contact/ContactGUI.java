@@ -57,7 +57,9 @@ public class ContactGUI {
         // Get user from boot up
         this.user = SplashScreen.user;
 
-        // TODO: add some loading animation
+        // some loading animation
+        RequestingDialog dialogLoad = new RequestingDialog(SplashScreen.frame, "Loading");
+        dialogLoad.display();
 
         // init Handlers and Managers
         initManager();
@@ -72,12 +74,15 @@ public class ContactGUI {
         try {
             debug.setText(Address.getLocalIp() + " @ " + Address.getInterface());
             button1.addActionListener(e -> {
-               changeToChat();
+                new RefusedDialog(SplashScreen.frame, "Disconnected").display();
+               System.exit(1);
             });
         } catch (SocketException e) {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
         }
+
+        dialogLoad.close();
     }
 
     private void initManager() {
@@ -97,6 +102,8 @@ public class ContactGUI {
                 SplashScreen.chatSender = new ChatSender(user, DataBase.getDataBasePath(user.getId()));
                 SplashScreen.chatReceiver = new ChatReceiver(user, SplashScreen.contactManager, DataBase.getDataBasePath(user.getId()),
                         SplashScreen.frame);
+            } else {
+                SplashScreen.chatReceiver.setContactManager(SplashScreen.contactManager);
             }
         } catch (IOException e) {
             Error dialog = new Error(SplashScreen.frame, e);

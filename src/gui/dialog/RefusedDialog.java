@@ -11,7 +11,7 @@ public class RefusedDialog extends JDialog {
         // Set up
         super(frame, true);
         setContentPane(contentPane);
-        setModal(true);
+        setModal(true); // TODO: pair with the fix for reconnecting
         getRootPane().setDefaultButton(buttonOK);
         messageLabel.setText(message);
 
@@ -20,7 +20,7 @@ public class RefusedDialog extends JDialog {
         buttonOK.addActionListener(e -> dispose());
 
         // prevent closing by pressing the cross
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         // Sizing
         setSize(300, 200);
