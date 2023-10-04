@@ -46,7 +46,6 @@ public class ContactGUI {
     private JLabel contactInstructionLabel;
     private JLabel peerInstructionLabel;
     private JLabel debug;
-    private JButton button1;
 
     public ContactGUI() {
         // Set up some ui stuff
@@ -73,10 +72,6 @@ public class ContactGUI {
 
         try {
             debug.setText(Address.getLocalIp() + " @ " + Address.getInterface());
-            button1.addActionListener(e -> {
-                new RefusedDialog(SplashScreen.frame, "Disconnected").display();
-               System.exit(1);
-            });
         } catch (SocketException e) {
             Error dialog = new Error(SplashScreen.frame, e);
             dialog.display();
