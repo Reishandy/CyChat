@@ -13,8 +13,8 @@ public class Config {
     public static final String ALGORITHM_AES = "AES";
     public static final String ALGORITHM_RSA = "RSA";
     public static final String ALGORITHM_AES_CFB = "AES/CFB/PKCS5Padding";
-    public static final String HASH_PASSWORD = "PBKD2FWithHmacSHA512";
-    public static final String HASH_MAIN_KEY = "PBKD2FWithHmacSHA256";
+    public static final String HASH_PASSWORD = "PBKDF2WithHmacSHA512";
+    public static final String HASH_MAIN_KEY = "PBKDF2WithHmacSHA256";
 
     public static final int HASH_MODE_PASSWORD = 1;
     public static final int HASH_MODE_MAIN_KEY = 2;
