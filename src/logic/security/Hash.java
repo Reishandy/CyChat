@@ -37,12 +37,8 @@ public class Hash {
     public static String hash(String string, byte[] salt, int mode) throws NoSuchAlgorithmException, InvalidKeySpecException {
         String algorithm = Config.HASH_PASSWORD;
         switch (mode) {
-            case 1 -> {
-                algorithm = Config.HASH_PASSWORD;
-            }
-            case 2 -> {
-                algorithm = Config.HASH_MAIN_KEY;
-            }
+            case 1 -> algorithm = Config.HASH_PASSWORD;
+            case 2 -> algorithm = Config.HASH_MAIN_KEY;
         }
 
         KeySpec spec = new PBEKeySpec(string.toCharArray(), salt, Config.SIZE_ITERATION, Config.SIZE_AES);
