@@ -23,4 +23,14 @@ public class Config {
     public static final int SIZE_SUPPORT = 16;
     public static final int SIZE_ITERATION = 10_000;
 
+    /**
+     * Database module's constants
+     */
+    public static final String DATABASE_TYPE = "jdbc:sqlite:";
+    public static final String DATABASE_EXTENSION = ".db";
+    public static final String DATABASE_NAME = "CyChat";
+
+    public static final int DATABASE_MODE_USER = 1;
+    public static final int DATABASE_MODE_CONTACT = 2;
+    public static final int DATABASE_MODE_HISTORY = 3;
 }
