@@ -1,16 +1,7 @@
 package logic.storage;
 
-import logic.data.user.Contact;
 import logic.data.user.History;
-import logic.data.user.User;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -21,8 +12,10 @@ import java.util.ArrayList;
  */
 public class DatabaseHistory {
     /**
-     * Function to store message history data into database, contact id is needed to store it into a seperated contact
-     * table.
+     * Add history into database. This function will encrypt the history's message using AES algorithm and then store
+     * it into the database with it's iv. This function will return 0 if the history is successfully added into the
+     * database and 1 if the history already exist. This function will also create a table for the contact if it doesn't
+     * exist. This function will also create a database for the contact if it doesn't exist.
      *
      * @param contactId Contact's id
      * @param history Message data
@@ -51,7 +44,9 @@ public class DatabaseHistory {
     }
 
     /**
-     * Get all history data from specific contact table that is identified by the contact id.
+     * Get history from database. This function will return a list of history from the database. This function will also
+     * create a table for the contact if it doesn't exist. This function will also create a database for the contact if
+     * it doesn't exist.
      *
      * @param contactId Contact's id
      * @param databasePath Database path in string
