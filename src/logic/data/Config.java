@@ -33,4 +33,18 @@ public class Config {
     public static final int DATABASE_MODE_USER = 1;
     public static final int DATABASE_MODE_CONTACT = 2;
     public static final int DATABASE_MODE_HISTORY = 3;
+
+    /**
+     * Network module's constants
+     */
+    public static final String UDP_IDENTIFIER_BROADCAST = "BROADCAST";
+    public static final String UDP_IDENTIFIER_EXCHANGE = "EXCHANGE";
+    public static final String UDP_IDENTIFIER_CONNECT = "CONNECT";
+
+    public static final int PORT_MAIN = 2318;
+    public static final int PORT_CHAT = 2319;
+    public static final int UDP_MODE_BROADCAST = 1;
+    public static final int UDP_MODE_EXCHANGE = 2;
+    public static final int UDP_MODE_CONNECT = 3;
+    public static final int UDP_BUFFER_SIZE = 1024;
 }
