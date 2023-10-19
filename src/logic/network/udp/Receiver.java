@@ -1,7 +1,11 @@
-package logic.network;
+package logic.network.udp;
 
 import logic.data.Config;
+import logic.network.Address;
+import logic.security.Crypto;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -17,13 +21,13 @@ public class Receiver {
      * the packet will contain identifier, id, username, and local IP address. and can have 3 mode, broadcast, exchange,
      * and connect. This function's primary purpose is to receive UDP packet from other user and ignore broadcast packet
      * from own IP address, and only receive exchange and connect packet that is sent to this IP address besides that
-     * it will be ignored.
+     * it will be ignored. It will also encrypt the message with a main key.
      *
      * @param ip The local IP address
      * @return String[] The array of string that contains identifier, id, username, and local IP address
      *         or null if the packet is ignored.
      *         [0] = identifier, [1] = sender id, [2] = sender username, [3] = sender IP address
-     * @throws IOException If there is an error while receiving the UDP packet
+     * @throws Exception If there is an error while receiving the UDP packet
      * @author Reishandy (isthisruxury@gmail.com)
      * @see Sender
      * @see Config#UDP_IDENTIFIER_BROADCAST
@@ -34,8 +38,11 @@ public class Receiver {
      * @see DatagramPacket
      * @see Address#getLocalIp() Used to get local IP address
      * @see Address#getBroadcastAddress() Used to get broadcast IP address
+     * @see Crypto#decryptAES(String, SecretKey, IvParameterSpec)
+     * @see Config#UDP_KEY
+     * @see Config#UDP_IV
      */
-    public static String[] receiveUDP(String ip) throws IOException {
+    public static String[] receiveUDP(String ip) throws Exception {
         String[] returnMessage = null;
 
         try (DatagramSocket socket = new DatagramSocket(Config.PORT_MAIN)) {
@@ -44,8 +51,12 @@ public class Receiver {
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             socket.receive(packet);
 
-            String[] receivedMessage = new String(packet.getData(), 0, packet.getLength())
-                    .split(":");
+            String decryptedMessage = Crypto.decryptAES(
+                    new String(packet.getData(), 0, packet.getLength()),
+                    Config.UDP_KEY, Config.UDP_IV
+            );
+
+            String[] receivedMessage = decryptedMessage.split(":");
             String identifier = receivedMessage[0];
             String targetIpAddress = receivedMessage[1];
             String senderId = receivedMessage[2];
@@ -64,8 +75,8 @@ public class Receiver {
                     }
                 }
             }
-        } catch (IOException e) {
-            throw new IOException(e);
+        } catch (Exception e) {
+            throw new Exception(e);
         }
 
         return returnMessage;

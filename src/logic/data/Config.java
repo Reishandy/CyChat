@@ -1,6 +1,14 @@
 package logic.data;
 
 
+import logic.security.Encoder;
+import logic.security.Generator;
+
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 /**
  * Config class to store constants used in the program.
  *
@@ -40,11 +48,23 @@ public class Config {
     public static final String UDP_IDENTIFIER_BROADCAST = "BROADCAST";
     public static final String UDP_IDENTIFIER_EXCHANGE = "EXCHANGE";
     public static final String UDP_IDENTIFIER_CONNECT = "CONNECT";
+    public static final String UDP_IDENTIFIER_ACCEPTED = "ACCEPTED";
+    public static final String UDP_IDENTIFIER_REJECTED = "REJECTED";
 
     public static final int PORT_MAIN = 2318;
     public static final int PORT_CHAT = 2319;
-    public static final int UDP_MODE_BROADCAST = 1;
-    public static final int UDP_MODE_EXCHANGE = 2;
-    public static final int UDP_MODE_CONNECT = 3;
     public static final int UDP_BUFFER_SIZE = 1024;
+    public static final SecretKey UDP_KEY;
+    public static final IvParameterSpec UDP_IV;
+
+    static {
+        try {
+            UDP_KEY = Generator.generateMainKey(
+                    "CyChat", Encoder.decode("/687ClBejc54xNoI4QSLTA=="));
+            UDP_IV = Encoder.decodeIV("xlo1fV04JLJtVFp/xJncMw==");
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
