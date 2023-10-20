@@ -50,6 +50,10 @@ public class Config {
     public static final String UDP_IDENTIFIER_CONNECT = "CONNECT";
     public static final String UDP_IDENTIFIER_ACCEPTED = "ACCEPTED";
     public static final String UDP_IDENTIFIER_REJECTED = "REJECTED";
+    public static final String CHAT_CLOSE_SIGNAL = "PWOEFBapoafbpofhoajCiicbsnoABF=0IQHNF0=9U3R9UBCAOb0=ihef=0aicA0BFQW" +
+            "wfu9aBF[OCJdbg9bJLCBOWbfojAKNXOUJEWVB  UJUBE=0IQEFOJANishfoEJFN AC0iqefhojacnoiqEHFOAknn0ij    DWNXj   wojboqif1" +
+            "3r[i3j=0aOJFQ330HV =0EIFHOjn09r 3 [oiefho[CN0 13R0Uhkfqt 098 piqfb0C RQ13HIRFEQ hv wugf wIHwkm 90  ewhfij a" +
+            "(I KNOW THIS IS NOT A GOOD IDEA BUT... I'M TOO LAZY TO MAKE A PROPER CLOSE SIGNAL)";
 
     public static final int PORT_MAIN = 2318;
     public static final int PORT_CHAT = 2319;
