@@ -6,6 +6,7 @@ import logic.security.Generator;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import java.awt.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
@@ -71,4 +72,9 @@ public class Config {
         }
     }
 
+    /**
+     * GUI module's constants
+     */
+    public static final Color MAIN_ACCENT_COLOR = Color.decode("#8C52FF");
+    public static final Color SECONDARY_ACCENT_COLOR = Color.decode("#545454");
 }
